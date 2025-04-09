@@ -18,17 +18,19 @@ export default async function RootLayout({
   const menu = role === 'admin' ? adminMenu : reviewerMenu;
 
   return (
-    <html lang="en">
-      <body>
-        <SidebarProvider>
-            <div className="flex"> 
-                <AppSidebar menu={menu} />
-                <main className="flex-1">
-                    {children}
-                </main>
-            </div>
-        </SidebarProvider>
-      </body>
-    </html>
+    <>
+      <SidebarProvider>
+      <div className="grid grid-cols-[250px_auto] w-screen h-screen">
+        
+        <aside className="bg-gray-200 p-4">
+          <AppSidebar menu={menu} />
+        </aside>
+
+        <main className="flex-1 p-4">
+          {children}
+        </main>
+      </div>
+    </SidebarProvider>
+    </>
   );
 }

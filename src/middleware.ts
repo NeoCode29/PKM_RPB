@@ -1,6 +1,7 @@
 import { createServerClient, type CookieOptions } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 import { updateSession } from '@/lib/supabase/middleware'
+import { supabaseServer } from './lib/supabase/server';
 
 // membuat daftar rute publik dan rute yang dilindungi
 const publicRoutes = ['/auth', '/api'];
@@ -8,6 +9,7 @@ const protectedRoutes = ['/admin', '/reviewer', '/settings', "/forbidden"];
 
 export async function middleware(request: NextRequest) {
   const { user, response } = await updateSession(request)
+  const supabase = await supabaseServer();
 
   // Jika tidak ada user dan mencoba mengakses halaman admin
   if (!user && request.nextUrl.pathname.startsWith('/admin')) {
@@ -36,33 +38,10 @@ export async function middleware(request: NextRequest) {
     }
 
     // Jika pengguna terautentikasi, ambil peran pengguna dari tabel 'users'
-    const {data} = await createServerClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-      {
-        cookies: {
-          get(name: string) {
-            return request.cookies.get(name)?.value
-          },
-          set(name: string, value: string, options: CookieOptions) {
-            response.cookies.set({
-              name,
-              value,
-              ...options,
-            })
-          },
-          remove(name: string, options: CookieOptions) {
-            response.cookies.set({
-              name,
-              value: '',
-              ...options,
-            })
-          },
-        },
-      }
-    ).from('users').select('role').eq('id', user.id).single();
+    const {data} = await supabase.from('users').select('role,id').eq('id', user.id).single();
 
     response.headers.set('pkm-user-role', data?.role );
+    response.headers.set('pkm-user-id', data?.id );
 
     if(path.startsWith('/admin') && data?.role !== 'admin'){
       let response = NextResponse.redirect(new URL('/forbidden', request.url))
