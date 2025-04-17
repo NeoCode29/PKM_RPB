@@ -4,7 +4,7 @@
 import Link from 'next/link'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { useState, useTransition } from 'react'
+import { useState, useTransition, useEffect } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { z } from 'zod'
 import {
@@ -20,8 +20,7 @@ import { Button } from '@/components/ui/button'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card'
 import { loginUser } from './actions'
-import { AlertCircle} from 'lucide-react'
-
+import { AlertCircle, Info } from 'lucide-react'
 
 // Skema validasi client-side
 const formSchema = z.object({
@@ -31,11 +30,18 @@ const formSchema = z.object({
 
 export default function LoginPage() {
     const searchParams = useSearchParams();
+    const redirectTo = searchParams.get('redirectTo') || '/';
     let message = searchParams.get('message') || null;
     const router = useRouter()
     const [isPending, startTransition] = useTransition()
     const [error, setError] = useState<string | null>(null)
     const [needsConfirmation, setNeedsConfirmation] = useState(false)
+    const [emailAddress, setEmailAddress] = useState<string>('')
+
+  // Log informasi penting untuk debugging
+  useEffect(() => {
+    console.log('Login page loaded with redirectTo:', redirectTo);
+  }, [redirectTo]);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -46,16 +52,25 @@ export default function LoginPage() {
   })
 
   const onSubmit = (data: z.infer<typeof formSchema>) => {
+    setEmailAddress(data.email);
     startTransition(async () => {
-      const result = await loginUser(data)
-      setError(null);
-      message = "";
-      
-      if (result.success) {
-        router.push(result.nextLink || '/')
-      } else {
-        setError(result.error || 'Terjadi kesalahan saat login')
-        setNeedsConfirmation(false)
+      try {
+        console.log('Attempting login for:', data.email);
+        const result = await loginUser(data)
+        setError(null);
+        
+        if (result.success) {
+          console.log('Login successful, redirecting to:', result.nextLink || redirectTo);
+          // Jika ada nextLink dari server, gunakan itu, jika tidak gunakan redirectTo dari URL
+          router.push(result.nextLink || redirectTo);
+        } else {
+          console.log('Login failed:', result.error);
+          setError(result.error || 'Terjadi kesalahan saat login')
+          setNeedsConfirmation(result.needsEmailConfirmation || false)
+        }
+      } catch (err) {
+        console.error('Login error:', err)
+        setError(err instanceof Error ? err.message : 'Terjadi kesalahan saat login')
       }
     })
   }
@@ -79,9 +94,19 @@ export default function LoginPage() {
             )}
             {message && (
                 <Alert className="mb-4">
-                <AlertCircle className="h-4 w-4" />
-                <AlertTitle>Message</AlertTitle>
+                <Info className="h-4 w-4" />
+                <AlertTitle>Info</AlertTitle>
                 <AlertDescription>{message}</AlertDescription>
+                </Alert>
+            )}
+            {needsConfirmation && (
+                <Alert className="mb-4">
+                <Info className="h-4 w-4" />
+                <AlertTitle>Verifikasi Email</AlertTitle>
+                <AlertDescription>
+                  Email konfirmasi telah dikirim ke {emailAddress}. 
+                  Silakan periksa kotak masuk Anda dan klik tautan verifikasi sebelum login.
+                </AlertDescription>
                 </Alert>
             )}
             <Form {...form}>
@@ -123,23 +148,22 @@ export default function LoginPage() {
                     )}
                 />
 
-                {needsConfirmation && (
-                    <Alert>
-                    Email konfirmasi telah dikirim. Silakan verifikasi email Anda sebelum login.
-                    </Alert>
-                )}
-
                 <Button type="submit" className="w-full" disabled={isPending}>
                     {isPending ? 'Memproses...' : 'Masuk'}
                 </Button>
                 </form>
             </Form>
         </CardContent>
-        <CardFooter className="flex justify-center">
+        <CardFooter className="flex flex-col space-y-4">
           <p className="text-sm text-gray-600">
             Belum punya akun?{' '}
             <Link href="/auth/register" className="text-blue-600 hover:underline">
               Daftar di sini
+            </Link>
+          </p>
+          <p className="text-sm text-gray-600">
+            <Link href="/auth/forgot-password" className="text-blue-600 hover:underline">
+              Lupa password?
             </Link>
           </p>
         </CardFooter>

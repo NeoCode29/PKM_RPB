@@ -1,34 +1,49 @@
 // components/Sidebar.tsx
-import { Sidebar, SidebarContent, SidebarGroup, SidebarGroupLabel, SidebarGroupContent, SidebarMenu, SidebarMenuItem, SidebarMenuButton } from "@/components/ui/sidebar";
+"use client"
+
+import {
+  Sidebar,
+  SidebarContent,
+  SidebarGroup,
+  SidebarGroupContent,
+  SidebarGroupLabel,
+  SidebarMenu,
+} from "@/components/ui/sidebar";
 import { MenuItem } from "@/types/menu";
-import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { SidebarMenuItemComponent } from "./sidebar/sidebar-menu-item";
 
 interface AppSidebarProps {
   menu: MenuItem[];
+  title?: string;
 }
 
-export const AppSidebar: React.FC<AppSidebarProps> = ({ menu }) => {
+export function AppSidebar({ menu, title = "Menu" }: AppSidebarProps) {
+  const pathname = usePathname();
+  
   return (
-    <Sidebar>
-      <SidebarContent>
+    <Sidebar className="border-r h-full">
+      <SidebarContent className="px-2">
         <SidebarGroup>
-          <SidebarGroupLabel>Menu</SidebarGroupLabel>
+          <SidebarGroupLabel className="text-sm font-semibold tracking-tight">
+            {title}
+          </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {menu.map((item) => (
-                <SidebarMenuItem key={item.link}>
-                  <SidebarMenuButton asChild>
-                    <Link href={item.link}>
-                      <item.icon className="mr-2 h-5 w-5" />
-                      <span>{item.title}</span>
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
+              {menu.map((item) => {
+                const isActive = pathname === item.link || pathname.startsWith(`${item.link}/`);
+                return (
+                  <SidebarMenuItemComponent 
+                    key={item.link}
+                    item={item} 
+                    isActive={isActive} 
+                  />
+                );
+              })}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
     </Sidebar>
   );
-};
+}

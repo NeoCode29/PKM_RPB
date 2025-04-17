@@ -1,17 +1,47 @@
-import Link from 'next/link';
-import DynamicBreadcrumb from './DynamicBreadcrumb';
+"use client"
 
-const Header = () => {
+import { Bell, UserCircle } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import DynamicBreadcrumb from "./DynamicBreadcrumb";
+
+export default function AppHeader() {
   return (
-    <header className="sticky top-0 z-50 w-full border-b bg-white">
-      <div className="container mx-auto flex flex-col px-4 py-2">
-        <div className="text-xl font-bold mb-2">
-          <Link href="/">MyApp</Link>
+    <header className="border-b bg-background shrink-0">
+      <div className="flex h-16 items-center justify-between px-6">
+        <div className="flex items-center gap-2">
+          <h1 className="text-xl font-semibold">Sistem PKM RPB</h1>
         </div>
-        <DynamicBreadcrumb />
+        
+        <div className="flex items-center gap-4">
+          <Button variant="ghost" size="icon" aria-label="Notifikasi">
+            <Bell className="h-5 w-5" />
+          </Button>
+
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="icon" className="rounded-full" aria-label="Menu Pengguna">
+                <UserCircle className="h-6 w-6" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-56">
+              <DropdownMenuLabel>Akun Saya</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem>Profil</DropdownMenuItem>
+              <DropdownMenuItem>Pengaturan</DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem className="text-destructive">Logout</DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
       </div>
     </header>
   );
-};
-
-export default Header;
+}

@@ -5,54 +5,112 @@ import { supabaseServer } from './lib/supabase/server';
 
 // membuat daftar rute publik dan rute yang dilindungi
 const publicRoutes = ['/auth', '/api'];
-const protectedRoutes = ['/admin', '/reviewer', '/settings', "/forbidden"];
+const protectedRoutes = ['/admin', '/reviewer', '/settings', "/forbidden", '/auth/change-password', '/dashboard', '/dashboadr', '/'];
+
+// Rute khusus autentikasi (login, register) yang hanya bisa diakses user yang belum login
+const authRoutes = [
+  '/auth/login',
+  '/auth/register',
+]
 
 export async function middleware(request: NextRequest) {
   const { user, response } = await updateSession(request)
   const supabase = await supabaseServer();
 
-  // Jika tidak ada user dan mencoba mengakses halaman admin
-  if (!user && request.nextUrl.pathname.startsWith('/admin')) {
-    return NextResponse.redirect(new URL('/auth/login', request.url))
-  }
-
-  // Jika ada user tapi mencoba mengakses halaman login
-  if (user && request.nextUrl.pathname.startsWith('/auth/login')) {
-    return NextResponse.redirect(new URL('/admin', request.url))
-  }
-
   // Mendapatkan URL dan jalur dari permintaan
   const path = request.nextUrl.pathname;
 
-  // Memeriksa apakah jalur adalah rute publik atau rute yang dilindungi
+  // Jika pengguna mengakses halaman utama (root path) dan sudah login,
+  // arahkan ke dashboard sesuai role mereka
+  if (path === '/' && user) {
+    
+    // Ambil role pengguna dari database
+    const {data} = await supabase.from('users').select('role,id').eq('id', user.id).single();
+    
+    console.log('User role:', data?.role);
+    
+    // Redirect berdasarkan role
+    if (data?.role === 'admin') {
+      return NextResponse.redirect(new URL('/admin', request.url));
+    } else if (data?.role === 'reviewer') {
+      return NextResponse.redirect(new URL('/reviewer', request.url));
+    } else {
+      return NextResponse.redirect(new URL('/forbidden', request.url));
+    }
+  }
+
+  // Jika tidak ada user dan mencoba mengakses halaman yang dilindungi
+  if (!user && (
+    path.startsWith('/admin') ||
+    path.startsWith('/reviewer') ||
+    path.startsWith('/settings') ||
+    path === '/dashboard' ||
+    path === '/dashboadr'
+  )) {
+    console.log('Redirecting unauthenticated user to login');
+    // Simpan halaman yang dicoba akses untuk redirect kembali setelah login
+    const redirectUrl = new URL('/auth/login', request.url);
+    redirectUrl.searchParams.set('redirectTo', path);
+    return NextResponse.redirect(redirectUrl);
+  }
+
+  // Jika ada user tapi mencoba mengakses halaman login/register
+  if (user && authRoutes.some(route => path.startsWith(route))) {
+    
+    // Ambil role pengguna dari database
+    const {data} = await supabase.from('users').select('role,id').eq('id', user.id).single();
+    
+    // Redirect berdasarkan role
+    if (data?.role === 'admin') {
+      return NextResponse.redirect(new URL('/admin', request.url));
+    } else if (data?.role === 'reviewer') {
+      return NextResponse.redirect(new URL('/reviewer', request.url));
+    } else {
+      return NextResponse.redirect(new URL('/forbidden', request.url));
+    }
+  }
+
+  // Memeriksa apakah jalur adalah rute publik (auth, api)
   if (publicRoutes.some((route) => path.startsWith(route))) {
     return response;
   }
 
   // Jika jalur adalah rute yang dilindungi, periksa apakah pengguna sudah terautentikasi
   if (protectedRoutes.some((route) => path.startsWith(route))) {
-
     // Jika pengguna tidak terautentikasi, arahkan ke halaman login
     if (!user) {
-      return NextResponse.redirect(new URL('/auth/login', request.url));
+      const redirectUrl = new URL('/auth/login', request.url);
+      redirectUrl.searchParams.set('redirectTo', path);
+      return NextResponse.redirect(redirectUrl);
     }
 
     // Jika pengguna terautentikasi, ambil peran pengguna dari tabel 'users'
     const {data} = await supabase.from('users').select('role,id').eq('id', user.id).single();
 
-    response.headers.set('pkm-user-role', data?.role );
-    response.headers.set('pkm-user-id', data?.id );
+    response.headers.set('pkm-user-role', data?.role);
+    response.headers.set('pkm-user-id', data?.id);
+
+    // Cek untuk dashboard (baik dengan ejaan yang benar maupun typo) dan alihkan berdasarkan role
+    if (path === '/dashboard' || path === '/dashboadr') {
+      if (data?.role === 'admin') {
+        return NextResponse.redirect(new URL('/admin', request.url));
+      } else if (data?.role === 'reviewer') {
+        return NextResponse.redirect(new URL('/reviewer', request.url));
+      } else {
+        return NextResponse.redirect(new URL('/forbidden', request.url));
+      }
+    }
 
     if(path.startsWith('/admin') && data?.role !== 'admin'){
-      let response = NextResponse.redirect(new URL('/forbidden', request.url))
-      response.headers.set('pkm-user-role', data?.role );
-      return response;
+      let redirectResponse = NextResponse.redirect(new URL('/forbidden', request.url));
+      redirectResponse.headers.set('pkm-user-role', data?.role);
+      return redirectResponse;
     }
     
     if(path.startsWith('/reviewer') && data?.role !== 'reviewer'){
-      let response = NextResponse.redirect(new URL('/forbidden', request.url))
-      response.headers.set('pkm-user-role', data?.role );
-      return response;
+      let redirectResponse = NextResponse.redirect(new URL('/forbidden', request.url));
+      redirectResponse.headers.set('pkm-user-role', data?.role);
+      return redirectResponse;
     }
   }
 
