@@ -52,8 +52,9 @@ async function getBidangName(bidangId: number) {
 export default async function BidangProposalPage({ 
   params 
 }: { 
-  params: { id_bidang: string } 
+  params: any 
 }) {
+  const paramsStore = await params;
   let userId: string;
   
   try {
@@ -63,7 +64,7 @@ export default async function BidangProposalPage({
     redirect('/login');
   }
   
-  const bidangId = parseInt(params.id_bidang);
+  const bidangId = parseInt(paramsStore.id_bidang);
   
   if (isNaN(bidangId)) {
     redirect('/reviewer/penilaian-substansi');

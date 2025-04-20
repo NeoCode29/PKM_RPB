@@ -49,7 +49,8 @@ async function getBidangName(bidangId: number) {
   }
 }
 
-export default async function ProposalListPage({ params }: { params: { id_bidang: string } }) {
+export default async function ProposalListPage({ params }: { params: any  }) {
+  const paramsStore = await params;
   let userId: string;
   
   try {
@@ -59,7 +60,7 @@ export default async function ProposalListPage({ params }: { params: { id_bidang
     redirect('/login');
   }
   
-  const bidangId = parseInt(params.id_bidang);
+  const bidangId = parseInt(paramsStore.id_bidang);
   
   if (isNaN(bidangId)) {
     redirect('/reviewer/penilaian-administrasi');
