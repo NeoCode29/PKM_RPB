@@ -4,9 +4,9 @@ import { Loader2 } from 'lucide-react';
 import ReportDetail from '@/components/report/ReportDetail';
 
 interface ReportPageProps {
-  params: {
+  params: Promise<{
     id: string;
-  };
+  }>
 }
 
 export default async function ReportPage({ params }: ReportPageProps) {
