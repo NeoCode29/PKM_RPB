@@ -3,13 +3,9 @@ import { notFound } from 'next/navigation';
 import { Loader2 } from 'lucide-react';
 import ReportDetail from '@/components/report/ReportDetail';
 
-interface ReportPageProps {
-  params: Promise<{
-    id: string;
-  }>
-}
 
-export default async function ReportPage({ params }: ReportPageProps) {
+
+export default async function ReportPage({ params }: {params: any}) {
   const paramsStore = await params;
   const id = parseInt(paramsStore.id);
   
