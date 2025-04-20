@@ -52,11 +52,9 @@ function ErrorState() {
 export default async function PenilaianAdministrasiPage({ 
   params 
 }: { 
-  params: { 
-    id_bidang: string;
-    id_proposal: string;
-  } 
+  params:any
 }) {
+  const paramsStore = await params;
   let userId: string;
   
   try {
@@ -66,8 +64,8 @@ export default async function PenilaianAdministrasiPage({
     redirect('/login');
   }
   
-  const bidangId = parseInt(params.id_bidang);
-  const proposalId = parseInt(params.id_proposal);
+  const bidangId = parseInt(paramsStore.id_bidang);
+  const proposalId = parseInt(paramsStore.id_proposal);
   
   // Fetch proposal data
   const proposal = await getProposalDetail(proposalId);
