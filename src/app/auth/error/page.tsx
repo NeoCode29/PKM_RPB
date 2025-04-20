@@ -1,16 +1,18 @@
 // File: app/auth/error/page.tsx
-'use client';
 
-import { useSearchParams } from 'next/navigation';
-import Link from 'next/link';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { AlertTriangle } from 'lucide-react';
+import Link from 'next/link';
 
-export default function AuthErrorPage() {
-  const searchParams = useSearchParams();
-  const error = searchParams.get('error') || 'Terjadi kesalahan autentikasi';
+export default async function AuthErrorPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ error?: string }>;
+}) {
+  const searchParamsStore = await searchParams;
+  const error = searchParamsStore.error || 'Terjadi kesalahan autentikasi';
   
   return (
     <div className="flex justify-center items-center min-h-screen p-4 bg-gray-50">
