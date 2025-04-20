@@ -28,6 +28,8 @@ import { format } from "date-fns";
 import { id } from "date-fns/locale";
 import { useToast } from "@/components/ui/use-toast";
 import { ProposalService } from "@/services/proposal-service";
+import { PenilaianAdministrasiService } from "@/services/penilaian-administrasi-service";
+import { PenilaianSubstansiService } from "@/services/penilaian-substansi-service";
 
 // Status mapping untuk badge
 const statusVariant: Record<string, "default" | "secondary" | "destructive" | "outline" | "success" | "warning"> = {
@@ -81,6 +83,11 @@ export default function ProposalDetailPage({ params }: { params: any }) {
   const [bidangOptions, setBidangOptions] = useState<any[]>([]);
   const [reviewerOptions, setReviewerOptions] = useState<any[]>([]);
   
+  // State untuk status penilaian reviewer
+  const [reviewerPenilaianStatus, setReviewerPenilaianStatus] = useState<{
+    [key: string]: { administrasi: boolean; substansi: boolean };
+  }>({});
+  
   // Ambil opsi bidang dan reviewer
   useEffect(() => {
     const fetchOptions = async () => {
@@ -106,6 +113,46 @@ export default function ProposalDetailPage({ params }: { params: any }) {
     
     fetchOptions();
   }, [toast]);
+  
+  // Ambil status penilaian untuk setiap reviewer
+  useEffect(() => {
+    const fetchPenilaianStatus = async () => {
+      if (!proposal || !proposal.reviewers || proposal.reviewers.length === 0) return;
+      
+      const statusMap: {
+        [key: string]: { administrasi: boolean; substansi: boolean };
+      } = {};
+      
+      for (const reviewer of proposal.reviewers) {
+        if (!reviewer.id_user) continue;
+        
+        try {
+          // Cek penilaian administrasi
+          const admResult = await PenilaianAdministrasiService.getPenilaianByReviewerAndProposal(
+            reviewer.id_user.toString(),
+            proposal.id_proposal
+          );
+          
+          // Cek penilaian substansi
+          const subsResult = await PenilaianSubstansiService.getPenilaianByReviewerAndProposal(
+            reviewer.id_user.toString(),
+            proposal.id_proposal
+          );
+          
+          statusMap[reviewer.id_reviewer.toString()] = {
+            administrasi: admResult?.penilaian.status || false,
+            substansi: subsResult?.penilaian.status || false
+          };
+        } catch (err) {
+          console.error(`Error fetching penilaian status for reviewer ${reviewer.id_reviewer}:`, err);
+        }
+      }
+      
+      setReviewerPenilaianStatus(statusMap);
+    };
+    
+    fetchPenilaianStatus();
+  }, [proposal]);
   
   // Handler untuk edit proposal
   const handleEdit = () => {
@@ -209,6 +256,43 @@ export default function ProposalDetailPage({ params }: { params: any }) {
     }
   };
   
+  // Fungsi untuk render reviewer card
+  const renderReviewerCard = (reviewer: any) => {
+    const status = reviewerPenilaianStatus[reviewer.id_reviewer.toString()] || { administrasi: false, substansi: false };
+    
+    return (
+      <div key={reviewer.id_reviewer} className="p-3 border rounded-lg">
+        <div className="flex items-center justify-between mb-1">
+          <Badge variant="outline" className="mr-2">Reviewer {reviewer.no}</Badge>
+          <div className="font-semibold text-primary">
+            {reviewer.user?.username || 'Tidak Ada Nama'}
+          </div>
+        </div>
+        <div className="flex flex-col gap-1 text-sm text-muted-foreground">
+          <div className="flex items-center">
+            <span className="w-36">Username:</span> 
+            <span className="font-medium">{reviewer.user?.username || 'Tidak Ada Username'}</span>
+          </div>
+          <div className="flex items-center">
+            <span className="w-36">Email:</span> 
+            <span>{reviewer.user?.email || 'Tidak Ada Email'}</span>
+          </div>
+          <div className="flex items-center">
+            <span className="w-36">Status Penilaian:</span> 
+            <div className="flex space-x-2">
+              <Badge variant={status.administrasi ? "success" : "secondary"}>
+                {status.administrasi ? "Adm ✓" : "Adm ×"}
+              </Badge>
+              <Badge variant={status.substansi ? "success" : "secondary"}>
+                {status.substansi ? "Sub ✓" : "Sub ×"}
+              </Badge>
+            </div>
+          </div>    
+        </div>
+      </div>
+    );
+  };
+  
   // Jika sedang loading, tampilkan loader
   if (loading) {
     return (
@@ -285,10 +369,6 @@ export default function ProposalDetailPage({ params }: { params: any }) {
                 <CardTitle className="text-2xl">{proposal.judul}</CardTitle>
                 <CardDescription>ID: {proposal.id_proposal}</CardDescription>
               </div>
-              <Badge variant={statusVariant[proposal.status_penilaian as string] || "secondary"} className="ml-auto text-md py-1 flex items-center">
-                <StatusIcon status={proposal.status_penilaian} />
-                {proposal.status_penilaian || 'Belum Dinilai'}
-              </Badge>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="flex items-center gap-2">
@@ -456,33 +536,7 @@ export default function ProposalDetailPage({ params }: { params: any }) {
                 <div className="space-y-4">
                   {proposal.reviewers
                     .sort((a, b) => a.no - b.no)
-                    .map(reviewer => {
-                      console.log("Rendering reviewer:", reviewer);
-                      return (
-                        <div key={reviewer.id_reviewer} className="p-3 border rounded-lg">
-                          <div className="flex items-center justify-between mb-1">
-                            <Badge variant="outline" className="mr-2">Reviewer {reviewer.no}</Badge>
-                            <div className="font-semibold text-primary">
-                              {reviewer.user?.username || 'Tidak Ada Nama'}
-                            </div>
-                          </div>
-                          <div className="flex flex-col gap-1 text-sm text-muted-foreground">
-                            <div className="flex items-center">
-                              <span className="w-20">Username:</span> 
-                              <span className="font-medium">{reviewer.user?.username || 'Tidak Ada Username'}</span>
-                            </div>
-                            <div className="flex items-center">
-                              <span className="w-20">Email:</span> 
-                              <span>{reviewer.user?.email || 'Tidak Ada Email'}</span>
-                            </div>
-                            <div className="flex items-center">
-                              <span className="w-20">Role:</span> 
-                              <span className="capitalize">{reviewer.user?.role || 'Tidak Ada Role'}</span>
-                            </div>    
-                          </div>
-                        </div>
-                      );
-                    })
+                    .map(reviewer => renderReviewerCard(reviewer))
                   }
                 </div>
               ) : (

@@ -16,7 +16,6 @@ export const BidangPkmService = {
       .order('id_bidang_pkm', { ascending: true });
     
     if (error) {
-      console.error('Error fetching bidang PKM:', error);
       throw error;
     }
     
@@ -33,7 +32,6 @@ export const BidangPkmService = {
       .single();
     
     if (error) {
-      console.error('Error fetching bidang PKM by id:', error);
       throw error;
     }
     

@@ -30,7 +30,6 @@ export function ReviewerDashboardContent({ userId }: DashboardContentProps) {
     if (typeof window !== 'undefined') {
       // Pastikan userId selalu memiliki nilai yang valid
       const safeUserId = userId || '';
-      console.log('Menyimpan userId ke localStorage:', safeUserId);
       localStorage.setItem('userId', safeUserId);
     }
   }, [userId]);

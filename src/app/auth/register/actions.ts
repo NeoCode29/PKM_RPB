@@ -54,7 +54,6 @@ export async function registerUser(data: {
 
     // Jika terjadi error pada registrasi auth
     if (authError) {
-      console.error('Supabase Auth Error:', authError);
       return {
         success: false,
         error: authError.message,
@@ -75,8 +74,6 @@ export async function registerUser(data: {
 
     // Jika terjadi error pada insert data
     if (dbError) {
-      console.error('Supabase DB Error:', dbError);
-      
       // Jika gagal, hapus user yang sudah diregistrasi di auth
       // (Opsional: Anda bisa skip langkah ini jika menggunakan RLS atau triggers)
       await supabase.auth.admin.deleteUser(authData.user?.id!);
@@ -94,7 +91,6 @@ export async function registerUser(data: {
     };
   } catch (error) {
     // Error validasi atau error lainnya
-    console.error('Registration error:', error);
     if (error instanceof z.ZodError) {
       return {
         success: false,

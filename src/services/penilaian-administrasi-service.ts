@@ -43,10 +43,7 @@ export const PenilaianAdministrasiService = {
   async getPenilaianByReviewerAndProposal(id_reviewer: string, id_proposal: number): Promise<PenilaianAdministrasiLengkap | null> {
     const supabase = supabaseClient();
     
-    console.log('Service getPenilaianByReviewerAndProposal called with:', { id_reviewer, id_proposal });
-    
     if (!id_reviewer) {
-      console.error('getPenilaianByReviewerAndProposal: id_reviewer is null or empty');
       return null;
     }
     
@@ -62,19 +59,14 @@ export const PenilaianAdministrasiService = {
       if (reviewerError) {
         // Jika error adalah PGRST116 (not found), berarti reviewer belum ditugaskan
         if (reviewerError.code === 'PGRST116') {
-          console.log('No reviewer assigned for this proposal');
           return null;
         }
-        console.error('Error fetching reviewer:', reviewerError);
         return null;
       }
       
       if (!reviewerData) {
-        console.log('No reviewer data found');
         return null;
       }
-      
-      console.log('Reviewer found:', reviewerData);
       
       // Cari penilaian administrasi berdasarkan id_reviewer
       const { data: penilaianData, error: penilaianError } = await supabase
@@ -85,19 +77,14 @@ export const PenilaianAdministrasiService = {
       
       if (penilaianError) {
         if (penilaianError.code === 'PGRST116') {
-          console.log('No penilaian administrasi found for this reviewer');
           return null;
         }
-        console.error('Error fetching penilaian administrasi:', penilaianError);
         return null;
       }
       
       if (!penilaianData) {
-        console.log('No penilaian administrasi data found');
         return null;
       }
-      
-      console.log('Penilaian administrasi found:', penilaianData);
       
       // Cari detail penilaian administrasi
       const { data: detailData, error: detailError } = await supabase
@@ -112,18 +99,14 @@ export const PenilaianAdministrasiService = {
         .eq('id_penilaian', penilaianData.id_penilaian_administrasi);
       
       if (detailError) {
-        console.error('Error fetching detail penilaian administrasi:', detailError);
         return null;
       }
-      
-      console.log('Detail penilaian administrasi found:', detailData?.length || 0, 'items');
       
       return {
         penilaian: penilaianData,
         details: detailData || []
       };
     } catch (error) {
-      console.error('Unexpected error in getPenilaianByReviewerAndProposal:', error);
       return null;
     }
   },
@@ -144,7 +127,6 @@ export const PenilaianAdministrasiService = {
         .single();
       
       if (reviewerError) {
-        console.error('Error getting reviewer:', reviewerError);
         throw new Error('Reviewer tidak ditemukan');
       }
       
@@ -200,7 +182,6 @@ export const PenilaianAdministrasiService = {
       
       return penilaianData;
     } catch (error) {
-      console.error('Error creating penilaian:', error);
       throw error;
     }
   },
@@ -228,7 +209,6 @@ export const PenilaianAdministrasiService = {
         .eq('id_penilaian_administrasi', id);
       
       if (penilaianError) {
-        console.error('Error updating penilaian administrasi:', penilaianError);
         throw penilaianError;
       }
       
@@ -239,7 +219,6 @@ export const PenilaianAdministrasiService = {
         .eq('id_penilaian', id);
       
       if (deleteError) {
-        console.error('Error deleting old penilaian details:', deleteError);
         throw deleteError;
       }
       
@@ -256,14 +235,12 @@ export const PenilaianAdministrasiService = {
           .insert(detailsInsert);
         
         if (insertError) {
-          console.error('Error inserting new penilaian details:', insertError);
           throw insertError;
         }
       }
       
       return { success: true };
     } catch (error) {
-      console.error("Error updating penilaian administrasi:", error);
       throw new Error("Gagal memperbarui penilaian administrasi");
     }
   },
@@ -280,7 +257,6 @@ export const PenilaianAdministrasiService = {
         .eq('id_user', id_reviewer_user);
       
       if (reviewerError) {
-        console.error('Error fetching reviewer IDs:', reviewerError);
         throw reviewerError;
       }
       
@@ -305,7 +281,6 @@ export const PenilaianAdministrasiService = {
         .in('id_proposal', proposalIds);
       
       if (proposalError) {
-        console.error('Error fetching proposals with bidang:', proposalError);
         throw proposalError;
       }
       
@@ -342,7 +317,6 @@ export const PenilaianAdministrasiService = {
       
       return result;
     } catch (error) {
-      console.error('Error in getProposalCountByBidang:', error);
       throw error;
     }
   },
@@ -359,7 +333,6 @@ export const PenilaianAdministrasiService = {
         .eq('id_user', id_reviewer_user);
       
       if (reviewerError) {
-        console.error('Error fetching reviewer IDs:', reviewerError);
         throw reviewerError;
       }
       
@@ -383,7 +356,6 @@ export const PenilaianAdministrasiService = {
         .eq('id_bidang_pkm', id_bidang_pkm);
       
       if (proposalError) {
-        console.error('Error fetching proposals by bidang:', proposalError);
         throw proposalError;
       }
       
@@ -399,7 +371,6 @@ export const PenilaianAdministrasiService = {
             .maybeSingle();
           
           if (penilaianError) {
-            console.error('Error checking penilaian status:', penilaianError);
           }
           
           // Update status berdasarkan penilaian yang ada
@@ -421,7 +392,6 @@ export const PenilaianAdministrasiService = {
             .eq('id_proposal', proposal.id_proposal);
           
           if (updateError) {
-            console.error('Error updating proposal status:', updateError);
           }
         }
         
@@ -430,7 +400,6 @@ export const PenilaianAdministrasiService = {
       
       return proposalsWithStatus;
     } catch (error) {
-      console.error('Error in getProposalsByBidang:', error);
       throw error;
     }
   }

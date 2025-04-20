@@ -71,7 +71,6 @@ export default function RegisterPage() {
       }
     } catch (err) {
       // Menangkap error yang terjadi
-      console.error('Error during registration:', err);
       setError(err instanceof Error ? err.message : 'Terjadi kesalahan tidak terduga');
     } finally {
       setIsSubmitting(false);

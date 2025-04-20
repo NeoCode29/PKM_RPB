@@ -11,7 +11,6 @@ export async function getUserId(): Promise<string> {
     
     return userId;
   } catch (error) {
-    console.error('Error getting user ID from headers:', error);
     throw new Error('Gagal mendapatkan ID pengguna');
   }
 } 

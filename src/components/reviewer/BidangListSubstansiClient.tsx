@@ -16,7 +16,7 @@ import { useToast } from '@/components/ui/use-toast';
 import { Folder, FileText, ArrowRight, Loader2 } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 
-export function BidangListClient() {
+export function BidangListSubstansiClient() {
   const router = useRouter();
   const [userId, setUserId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -62,8 +62,9 @@ export function BidangListClient() {
     }
   }, [error, toast]);
   
+  // Perbedaan utama ada di sini, mengarah ke URL penilaian substansi
   const handleBidangClick = (bidangId: number) => {
-    router.push(`/reviewer/penilaian-administrasi/${bidangId}`);
+    router.push(`/reviewer/penilaian-substansi/${bidangId}`);
   };
   
   const getBidangColor = (index: number) => {

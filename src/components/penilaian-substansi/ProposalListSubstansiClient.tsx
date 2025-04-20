@@ -35,13 +35,24 @@ import {
 import { format } from 'date-fns';
 import { id } from 'date-fns/locale';
 import { Card, CardDescription, CardFooter, CardTitle } from '@/components/ui/card';
+import { ProposalWithRelations } from '@/services/proposal-service';
 
-interface ProposalListClientProps {
+// Interface untuk memperluas ProposalWithRelations dengan penilaian_substansi
+interface ExtendedProposal extends ProposalWithRelations {
+  penilaian_substansi?: {
+    id_penilaian_substansi?: number;
+    status?: boolean;
+    total_nilai?: number;
+    updated_at?: string;
+  } | null;
+}
+
+interface ProposalListSubstansiClientProps {
   bidangId: number;
   userId: string;
 }
 
-export function ProposalListClient({ bidangId, userId }: ProposalListClientProps) {
+export function ProposalListSubstansiClient({ bidangId, userId }: ProposalListSubstansiClientProps) {
   const router = useRouter();
   const { toast } = useToast();
   
@@ -51,7 +62,7 @@ export function ProposalListClient({ bidangId, userId }: ProposalListClientProps
     bidangId
   );
   
-  const [filteredProposals, setFilteredProposals] = useState<any[]>([]);
+  const [filteredProposals, setFilteredProposals] = useState<ExtendedProposal[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [bidangName, setBidangName] = useState('');
@@ -64,7 +75,7 @@ export function ProposalListClient({ bidangId, userId }: ProposalListClientProps
       setBidangName(proposals[0].bidang_pkm.nama);
     }
     
-    let filtered = [...proposals];
+    let filtered = [...proposals] as ExtendedProposal[];
     
     // Apply search filter
     if (searchQuery) {
@@ -77,14 +88,15 @@ export function ProposalListClient({ bidangId, userId }: ProposalListClientProps
     // Apply status filter
     if (statusFilter !== 'all') {
       filtered = filtered.filter(p => {
-        if (!p.status_penilaian) return statusFilter === 'belum dinilai';
-        const normalizedStatus = p.status_penilaian.toLowerCase();
-        const filterStatus = statusFilter.toLowerCase();
+        // Periksa status penilaian substansi
+        const penilaianStatus = p.penilaian_substansi?.status;
         
-        if (filterStatus === 'belum dinilai') {
-          return normalizedStatus === 'belum dinilai' || normalizedStatus === '';
+        if (statusFilter === 'Sudah Dinilai') {
+          return penilaianStatus === true;
+        } else if (statusFilter === 'Belum Dinilai') {
+          return penilaianStatus !== true;
         }
-        return normalizedStatus === filterStatus;
+        return true;
       });
     }
     
@@ -94,7 +106,7 @@ export function ProposalListClient({ bidangId, userId }: ProposalListClientProps
   // Handle errors
   useEffect(() => {
     if (error) {
-      console.error('Error in ProposalListClient:', error);
+      console.error('Error in ProposalListSubstansiClient:', error);
       toast({
         title: 'Error',
         description: error.message || 'Terjadi kesalahan saat memuat data. Silakan coba lagi.',
@@ -104,14 +116,14 @@ export function ProposalListClient({ bidangId, userId }: ProposalListClientProps
   }, [error, toast]);
   
   const handleBack = () => {
-    router.push('/reviewer/penilaian-administrasi');
+    router.push('/reviewer/penilaian-substansi');
   };
   
   const handleViewProposal = (id: number) => {
-    router.push(`/reviewer/penilaian-administrasi/${bidangId}/${id}`);
+    router.push(`/reviewer/penilaian-substansi/${bidangId}/${id}`);
   };
   
-  const getStatusVariant = (status: boolean | null) => {
+  const getStatusVariant = (status: boolean | null | undefined) => {
     if (status === true) {
       return 'bg-green-100 text-green-800 hover:bg-green-200';
     } else {
@@ -120,7 +132,7 @@ export function ProposalListClient({ bidangId, userId }: ProposalListClientProps
   };
   
   // Fungsi untuk memastikan status penilaian dalam format yang benar
-  const formatStatusPenilaian = (status: boolean | null): string => {
+  const formatStatusPenilaian = (status: boolean | null | undefined): string => {
     return status ? 'Sudah Dinilai' : 'Belum Dinilai';
   };
   
@@ -166,9 +178,9 @@ export function ProposalListClient({ bidangId, userId }: ProposalListClientProps
     <div className="space-y-6">
       <div className="flex flex-col gap-2 sm:flex-row sm:justify-between sm:items-center">
         <div className="flex items-center gap-4">
-            <p className="text-muted-foreground">
-              {filteredProposals.length} proposal yang perlu dinilai
-            </p>
+          <p className="text-muted-foreground">
+            {filteredProposals.length} proposal yang perlu dinilai
+          </p>
         </div>
         
         <div className="flex flex-wrap gap-2">
@@ -247,9 +259,9 @@ export function ProposalListClient({ bidangId, userId }: ProposalListClientProps
                   <TableCell>
                     <Badge 
                       variant="secondary" 
-                      className={getStatusVariant(proposal.penilaian_administrasi?.status)}
+                      className={getStatusVariant(proposal.penilaian_substansi?.status)}
                     >
-                      {formatStatusPenilaian(proposal.penilaian_administrasi?.status)}
+                      {formatStatusPenilaian(proposal.penilaian_substansi?.status)}
                     </Badge>
                   </TableCell>
                   <TableCell>

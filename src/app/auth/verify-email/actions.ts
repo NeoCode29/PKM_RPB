@@ -2,7 +2,7 @@
 
 import { supabaseServer } from "@/lib/supabase/server";
 
-export async function resendConfirmationEmail(email :string ) {
+export async function resendConfirmationEmail(email: string) {
     const supabase = await supabaseServer();
     const { error } = await supabase.auth.resend({
       type: 'signup',
@@ -10,9 +10,8 @@ export async function resendConfirmationEmail(email :string ) {
     });
   
     if (error) {
-      console.error('Gagal mengirim ulang email verifikasi:', error.message);
+      // Handle error
     } else {
-      console.log('Email verifikasi telah dikirim ulang. Silakan periksa kotak masuk Anda.');
+      // Handle success
     }
   }
-  

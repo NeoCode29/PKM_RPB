@@ -57,7 +57,6 @@ export function BidangProposalAdministrasiContent({ userId, bidangId }: BidangPr
         setFilteredProposals(data);
         setError(null);
       } catch (error) {
-        console.error('Error fetching proposals:', error);
         setError('Terjadi kesalahan saat memuat data proposal');
       } finally {
         setIsLoading(false);

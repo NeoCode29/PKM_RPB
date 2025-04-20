@@ -38,9 +38,8 @@ export default function LoginPage() {
     const [needsConfirmation, setNeedsConfirmation] = useState(false)
     const [emailAddress, setEmailAddress] = useState<string>('')
 
-  // Log informasi penting untuk debugging
   useEffect(() => {
-    console.log('Login page loaded with redirectTo:', redirectTo);
+    // Log informasi penting untuk debugging
   }, [redirectTo]);
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -55,21 +54,16 @@ export default function LoginPage() {
     setEmailAddress(data.email);
     startTransition(async () => {
       try {
-        console.log('Attempting login for:', data.email);
         const result = await loginUser(data)
         setError(null);
         
         if (result.success) {
-          console.log('Login successful, redirecting to:', result.nextLink || redirectTo);
-          // Jika ada nextLink dari server, gunakan itu, jika tidak gunakan redirectTo dari URL
           router.push(result.nextLink || redirectTo);
         } else {
-          console.log('Login failed:', result.error);
           setError(result.error || 'Terjadi kesalahan saat login')
           setNeedsConfirmation(result.needsEmailConfirmation || false)
         }
       } catch (err) {
-        console.error('Login error:', err)
         setError(err instanceof Error ? err.message : 'Terjadi kesalahan saat login')
       }
     })
@@ -159,11 +153,6 @@ export default function LoginPage() {
             Belum punya akun?{' '}
             <Link href="/auth/register" className="text-blue-600 hover:underline">
               Daftar di sini
-            </Link>
-          </p>
-          <p className="text-sm text-gray-600">
-            <Link href="/auth/forgot-password" className="text-blue-600 hover:underline">
-              Lupa password?
             </Link>
           </p>
         </CardFooter>

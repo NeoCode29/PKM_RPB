@@ -2,7 +2,7 @@ import { Suspense } from 'react';
 import { BackButton } from '@/components/reviewer/BackButton';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Skeleton } from '@/components/ui/skeleton';
-import { BidangProposalContent } from '@/components/penilaian-substansi/BidangProposalContent';
+import { ProposalListSubstansiClient } from '@/components/penilaian-substansi/ProposalListSubstansiClient';
 import { getUserId } from '@/lib/auth/get-user-id';
 import { redirect } from 'next/navigation';
 import { BidangPkmService } from '@/services/bidang-pkm-service';
@@ -62,7 +62,7 @@ export default async function BidangProposalPage({
     console.error('Error getting user ID:', error);
     redirect('/login');
   }
-
+  
   const bidangId = parseInt(params.id_bidang);
   
   if (isNaN(bidangId)) {
@@ -82,7 +82,7 @@ export default async function BidangProposalPage({
       </div>
 
       <Suspense fallback={<Loading />}>
-        <BidangProposalContent userId={userId} bidangId={bidangId} />
+        <ProposalListSubstansiClient userId={userId} bidangId={bidangId} />
       </Suspense>
     </div>
   );

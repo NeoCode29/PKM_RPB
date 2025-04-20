@@ -58,7 +58,6 @@ export const PenilaianSubstansiService = {
         .single();
       
       if (reviewerError || !reviewerData) {
-        console.log('No reviewer found');
         return null;
       }
       
@@ -70,7 +69,6 @@ export const PenilaianSubstansiService = {
         .single();
       
       if (penilaianError || !penilaianData) {
-        console.log('No penilaian substansi found');
         return null;
       }
       
@@ -96,8 +94,7 @@ export const PenilaianSubstansiService = {
         penilaian: penilaianData,
         details: detailData || []
       };
-    } catch (error) {
-      console.error('Error in getPenilaianByReviewerAndProposal:', error);
+    } catch {
       return null;
     }
   },
@@ -170,7 +167,6 @@ export const PenilaianSubstansiService = {
       
       return penilaianData;
     } catch (error) {
-      console.error('Error in createPenilaian:', error);
       throw error;
     }
   },
@@ -225,7 +221,6 @@ export const PenilaianSubstansiService = {
       
       return penilaianData;
     } catch (error) {
-      console.error('Error in updatePenilaian:', error);
       throw error;
     }
   },
@@ -271,7 +266,6 @@ export const PenilaianSubstansiService = {
       
       return bidangCounts;
     } catch (error) {
-      console.error('Error in getProposalCountByBidang:', error);
       throw error;
     }
   }

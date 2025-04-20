@@ -27,7 +27,7 @@ export async function middleware(request: NextRequest) {
     // Ambil role pengguna dari database
     const {data} = await supabase.from('users').select('role,id').eq('id', user.id).single();
     
-    console.log('User role:', data?.role);
+    
     
     // Redirect berdasarkan role
     if (data?.role === 'admin') {
@@ -47,8 +47,7 @@ export async function middleware(request: NextRequest) {
     path === '/dashboard' ||
     path === '/dashboadr'
   )) {
-    console.log('Redirecting unauthenticated user to login');
-    // Simpan halaman yang dicoba akses untuk redirect kembali setelah login
+   
     const redirectUrl = new URL('/auth/login', request.url);
     redirectUrl.searchParams.set('redirectTo', path);
     return NextResponse.redirect(redirectUrl);

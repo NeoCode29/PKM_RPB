@@ -42,7 +42,6 @@ export async function loginUser(data: LoginParams): Promise<LoginResult> {
 
         // jika login gagal
         if (authError) {
-            console.error('Supabase Auth Error:', authError);
             
             // Periksa apakah error terkait email yang belum terverifikasi
             if (authError.message.includes('Email not confirmed') || 
@@ -89,7 +88,6 @@ export async function loginUser(data: LoginParams): Promise<LoginResult> {
             .single();
 
         if (userError) {
-            console.error('User Data Error:', userError);
             return {
                 success: false,
                 error: 'Gagal mengambil data pengguna',
@@ -98,7 +96,6 @@ export async function loginUser(data: LoginParams): Promise<LoginResult> {
 
         // Middleware akan menangani pengalihan sesuai peran, jadi kita hanya perlu mengembalikan satu URL
         // Pengalihan akan dilakukan oleh middleware untuk membawa pengguna ke halaman yang sesuai
-        console.log('Login successful for user with role:', userData?.role);
         
         return {
             success: true,
@@ -107,13 +104,11 @@ export async function loginUser(data: LoginParams): Promise<LoginResult> {
 
     } catch (error) {
         if (error instanceof z.ZodError) {
-            console.error('Validation Error:', error.errors);
             return {
                 success: false,
                 error: error.errors.map(e => e.message).join(', '),
             };
         } else {
-            console.error('Unexpected Error:', error);
             return {
                 success: false,
                 error: error instanceof Error ? error.message : 'Terjadi kesalahan saat login',
@@ -121,4 +116,3 @@ export async function loginUser(data: LoginParams): Promise<LoginResult> {
         }
     }
 }
-

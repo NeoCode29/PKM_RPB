@@ -27,17 +27,27 @@ interface ProposalDetailCardProps {
 export function ProposalDetailCard({ proposal, showBasicInfoOnly = false, showDetailOnly = false }: ProposalDetailCardProps) {
   if (!proposal) return null;
 
-  const getStatusColor = (status: string | null) => {
-    switch (status) {
-      case 'Diterima':
-        return 'bg-green-100 text-green-800';
-      case 'Ditolak':
-        return 'bg-red-100 text-red-800';
-      case 'Sedang Ditinjau':
-        return 'bg-yellow-100 text-yellow-800';
-      default:
-        return 'bg-gray-100 text-gray-800';
+  const getStatusColor = (status: string | null | boolean) => {
+    if (status === true) {
+      return 'bg-green-100 text-green-800';
+    } else if (status === false) {
+      return 'bg-yellow-100 text-yellow-800';
+    } else {
+      switch (status) {
+        case 'Diterima':
+          return 'bg-green-100 text-green-800';
+        case 'Ditolak':
+          return 'bg-red-100 text-red-800';
+        case 'Sedang Ditinjau':
+          return 'bg-yellow-100 text-yellow-800';
+        default:
+          return 'bg-gray-100 text-gray-800';
+      }
     }
+  };
+
+  const getStatusText = (status: boolean | null | undefined) => {
+    return status === true ? 'Sudah Dinilai' : 'Belum Dinilai';
   };
 
   // Jika mode showDetailOnly aktif, tampilkan hanya informasi mahasiswa, dosen, dan pendanaan
@@ -174,11 +184,6 @@ export function ProposalDetailCard({ proposal, showBasicInfoOnly = false, showDe
           <CardHeader>
             <CardTitle className="text-xl">{proposal.judul}</CardTitle>
             <CardDescription>Bidang: {proposal.bidang_pkm?.nama || '-'}</CardDescription>
-            <div className="mt-2">
-              <Badge className={getStatusColor(proposal.status_penilaian)}>
-                {proposal.status_penilaian || 'Belum Dinilai'}
-              </Badge>
-            </div>
           </CardHeader>
           <CardContent>
             <Table>
@@ -231,8 +236,8 @@ export function ProposalDetailCard({ proposal, showBasicInfoOnly = false, showDe
           <CardTitle className="text-xl">{proposal.judul}</CardTitle>
           <CardDescription>Bidang: {proposal.bidang_pkm?.nama || '-'}</CardDescription>
           <div className="mt-2">
-            <Badge className={getStatusColor(proposal.status_penilaian)}>
-              {proposal.status_penilaian || 'Belum Dinilai'}
+            <Badge className={getStatusColor(proposal.penilaian_substansi?.status)}>
+              {getStatusText(proposal.penilaian_substansi?.status)}
             </Badge>
           </div>
         </CardHeader>

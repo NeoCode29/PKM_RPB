@@ -43,6 +43,10 @@ export function usePenilaianSubstansi({ proposalId, bidangId, userId }: UsePenil
 
       setExistingPenilaian(existingData);
 
+      if (existingData && existingData.penilaian.catatan) {
+        setCatatan(existingData.penilaian.catatan);
+      }
+
       // Buat map dari detail penilaian yang sudah ada untuk lookup yang lebih cepat
       const existingDetailsMap = new Map(
         existingData?.details.map(detail => [detail.id_kriteria, detail]) || []
@@ -97,7 +101,7 @@ export function usePenilaianSubstansi({ proposalId, bidangId, userId }: UsePenil
   };
 
   // Fungsi untuk menyimpan penilaian
-  const savePenilaian = async (isFinalized: boolean = false, catatan?: string) => {
+  const savePenilaian = async (isFinalized: boolean, catatanValue: string) => {
     try {
       setIsSaving(true);
       setError(null);
@@ -108,6 +112,17 @@ export function usePenilaianSubstansi({ proposalId, bidangId, userId }: UsePenil
         nilai: item.nilai
       }));
 
+      // Validasi skor tidak boleh 0 saat finalisasi
+      if (isFinalized) {
+        const invalidItems = penilaianItems.filter(item => item.skor === 0);
+        if (invalidItems.length > 0) {
+          throw new Error('Semua kriteria harus diberi skor untuk menyimpan penilaian');
+        }
+      }
+
+      // Pastikan catatan selalu terkirim
+      console.log("Saving with catatan:", catatanValue);
+
       if (existingPenilaian) {
         // Update penilaian yang sudah ada
         await PenilaianSubstansiService.updatePenilaian(existingPenilaian.penilaian.id, {
@@ -115,7 +130,7 @@ export function usePenilaianSubstansi({ proposalId, bidangId, userId }: UsePenil
           id_proposal: proposalId,
           details,
           isFinalized,
-          catatan
+          catatan: catatanValue
         });
       } else {
         // Buat penilaian baru
@@ -124,7 +139,7 @@ export function usePenilaianSubstansi({ proposalId, bidangId, userId }: UsePenil
           id_proposal: proposalId,
           details,
           isFinalized,
-          catatan
+          catatan: catatanValue
         });
       }
 
@@ -137,10 +152,11 @@ export function usePenilaianSubstansi({ proposalId, bidangId, userId }: UsePenil
       await fetchPenilaian();
     } catch (err) {
       console.error('Error saving penilaian:', err);
-      setError('Terjadi kesalahan saat menyimpan penilaian');
+      const errMsg = err instanceof Error ? err.message : 'Terjadi kesalahan saat menyimpan penilaian';
+      setError(errMsg);
       toast({
         title: 'Error',
-        description: 'Gagal menyimpan penilaian',
+        description: errMsg,
         variant: 'destructive',
       });
     } finally {

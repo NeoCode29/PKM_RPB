@@ -20,7 +20,6 @@ export const KriteriaAdministrasiService = {
       .order('id_kriteria', { ascending: true });
     
     if (error) {
-      console.error('Error fetching kriteria administrasi:', error);
       throw error;
     }
     
@@ -37,7 +36,6 @@ export const KriteriaAdministrasiService = {
       .single();
     
     if (error) {
-      console.error('Error fetching kriteria administrasi by id:', error);
       throw error;
     }
     
@@ -54,7 +52,6 @@ export const KriteriaAdministrasiService = {
       .single();
     
     if (error) {
-      console.error('Error creating kriteria administrasi:', error);
       throw error;
     }
     
@@ -72,7 +69,6 @@ export const KriteriaAdministrasiService = {
       .single();
     
     if (error) {
-      console.error('Error updating kriteria administrasi:', error);
       throw error;
     }
     
@@ -88,7 +84,6 @@ export const KriteriaAdministrasiService = {
       .eq('id_kriteria', id);
     
     if (error) {
-      console.error('Error deleting kriteria administrasi:', error);
       throw error;
     }
   }

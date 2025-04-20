@@ -24,7 +24,6 @@ export const KriteriaSubstansiService = {
       .order('id_kriteria', { ascending: true });
     
     if (error) {
-      console.error('Error fetching kriteria substansi:', error);
       throw error;
     }
     
@@ -41,7 +40,6 @@ export const KriteriaSubstansiService = {
       .order('id_kriteria', { ascending: true });
     
     if (error) {
-      console.error('Error fetching kriteria substansi by bidang PKM:', error);
       throw error;
     }
     
@@ -58,7 +56,6 @@ export const KriteriaSubstansiService = {
       .single();
     
     if (error) {
-      console.error('Error fetching kriteria substansi by id:', error);
       throw error;
     }
     
@@ -75,7 +72,6 @@ export const KriteriaSubstansiService = {
       .single();
     
     if (error) {
-      console.error('Error creating kriteria substansi:', error);
       throw error;
     }
     
@@ -93,7 +89,6 @@ export const KriteriaSubstansiService = {
       .single();
     
     if (error) {
-      console.error('Error updating kriteria substansi:', error);
       throw error;
     }
     
@@ -109,7 +104,6 @@ export const KriteriaSubstansiService = {
       .eq('id_kriteria', id);
     
     if (error) {
-      console.error('Error deleting kriteria substansi:', error);
       throw error;
     }
   }

@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/components/ui/use-toast";
@@ -18,10 +18,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ProposalTable } from "@/components/proposal/proposal-table";
 import { ProposalDialog } from "@/components/proposal/proposal-dialog";
 import { DeleteConfirmation } from "@/components/proposal/delete-confirmation";
@@ -31,7 +29,6 @@ import { Pagination } from "@/components/ui/pagination";
 
 export default function ProposalPage() {
   const router = useRouter();
-  const { toast } = useToast();
   
   // State untuk dialog
   const [openDialog, setOpenDialog] = useState(false);
@@ -41,19 +38,17 @@ export default function ProposalPage() {
   const [selectedProposal, setSelectedProposal] = useState<any>(null);
   
   // State untuk filter pencarian
-  const [searchQuery, setSearchQuery] = useState("");
+  const [searchQuery, setSearchQuery] = useState<any>("");
   
   // Gunakan hook useProposals untuk manajemen proposal
   const {
     proposals,
     loading,
-    error,
     filter,
     pagination,
     updateFilter,
     changePage,
     changePageSize,
-    fetchProposals,
     createProposal,
     updateProposal,
     deleteProposal,
@@ -109,7 +104,7 @@ export default function ProposalPage() {
         await deleteProposal(selectedProposal.id_proposal);
         setOpenDeleteDialog(false);
       } catch (err) {
-        console.error("Error deleting proposal:", err);
+        // Error handling
       }
     }
   };
@@ -125,7 +120,7 @@ export default function ProposalPage() {
         setOpenDialog(false);
       }
     } catch (err) {
-      console.error("Error saving proposal:", err);
+      // Error handling
     }
   };
   

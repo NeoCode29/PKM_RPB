@@ -200,7 +200,6 @@ export const ProposalService = {
     const { data, error, count } = await query;
     
     if (error) {
-      console.error('Error fetching proposals:', error);
       throw error;
     }
     
@@ -241,8 +240,6 @@ export const ProposalService = {
   async getById(id: number): Promise<ProposalWithRelations | null> {
     const supabase = supabaseClient();
     
-    console.log(`Mengambil proposal dengan ID: ${id}`);
-    
     const { data, error } = await supabase
       .from('proposal')
         .select(`
@@ -263,19 +260,13 @@ export const ProposalService = {
       .single();
 
     if (error) {
-      console.error('Error fetching proposal:', error);
       throw error;
     }
     
     if (!data) return null;
     
-    // Log untuk memeriksa data reviewer yang diterima
-    console.log('Data reviewer yang diterima:', data.reviewer);
-    
     // Transform data reviewer untuk memperbaiki struktur
     const transformedReviewers = data.reviewer ? data.reviewer.map((r: any) => {
-      console.log(`Reviewer ${r.no} raw data:`, r);
-      // Struktur yang benar untuk reviewer - memastikan data user tersedia
       return {
         id_reviewer: r.id_reviewer,
         id_proposal: r.id_proposal,
@@ -284,8 +275,6 @@ export const ProposalService = {
         user: r.users // Mengambil dari properti 'users'
       };
     }) : [];
-    
-    console.log('Transformed reviewers:', transformedReviewers);
     
     return {
       ...data,
@@ -440,7 +429,6 @@ export const ProposalService = {
   // Memperbarui proposal
   async update(id: number, input: Partial<ProposalInput>): Promise<ProposalWithRelations> {
     const supabase = supabaseClient();
-    console.log("[SERVICE] Memulai update proposal ID:", id);
     
     // Dapatkan proposal yang ada
     const { data: existingProposal, error: getError } = await supabase
@@ -450,12 +438,10 @@ export const ProposalService = {
       .single();
     
     if (getError) {
-      console.error("[SERVICE] Error mendapatkan proposal:", getError);
       throw getError;
     }
     
     if (!existingProposal) {
-      console.error("[SERVICE] Proposal tidak ditemukan:", id);
       throw new Error(`Proposal ID ${id} tidak ditemukan`);
     }
     
@@ -463,8 +449,6 @@ export const ProposalService = {
     if (existingProposal.id_mahasiswa && 
         (input.nama_mahasiswa || input.nim || input.program_studi || 
          input.jurusan || input.nomer_hp_mahasiswa || input.email_mahasiswa)) {
-      
-      console.log("[SERVICE] Memperbarui data mahasiswa untuk ID:", existingProposal.id_mahasiswa);
       
       const mahasiswaUpdateData: any = {};
       if (input.nama_mahasiswa) mahasiswaUpdateData.nama = input.nama_mahasiswa;
@@ -481,19 +465,14 @@ export const ProposalService = {
           .eq('id_mahasiswa', existingProposal.id_mahasiswa);
         
         if (mahasiswaUpdateError) {
-          console.error("[SERVICE] Error updating mahasiswa:", mahasiswaUpdateError);
           throw mahasiswaUpdateError;
         }
-        
-        console.log("[SERVICE] Data mahasiswa berhasil diperbarui");
       }
     }
     
     // Update data dosen jika ada
     if (existingProposal.id_dosen && 
         (input.nama_dosen || input.nidn || input.email_dosen || input.nomer_hp_dosen)) {
-      
-      console.log("[SERVICE] Memperbarui data dosen untuk ID:", existingProposal.id_dosen);
       
       const dosenUpdateData: any = {};
       if (input.nama_dosen) dosenUpdateData.nama = input.nama_dosen;
@@ -508,11 +487,8 @@ export const ProposalService = {
           .eq('id_dosen', existingProposal.id_dosen);
         
         if (dosenUpdateError) {
-          console.error("[SERVICE] Error updating dosen:", dosenUpdateError);
           throw dosenUpdateError;
         }
-        
-        console.log("[SERVICE] Data dosen berhasil diperbarui");
       }
     }
     
@@ -520,8 +496,6 @@ export const ProposalService = {
     if (input.dana_simbelmawa !== undefined || 
         input.dana_perguruan_tinggi !== undefined || 
         input.dana_pihak_lain !== undefined) {
-      
-      console.log("[SERVICE] Memperbarui data pendanaan untuk proposal ID:", id);
       
       // Cek apakah detail pendanaan sudah ada
       const { data: existingPendanaan, error: pendanaanError } = await supabase
@@ -531,7 +505,6 @@ export const ProposalService = {
         .maybeSingle();
       
       if (pendanaanError) {
-        console.error("[SERVICE] Error checking detail pendanaan:", pendanaanError);
         throw pendanaanError;
       }
       
@@ -557,8 +530,6 @@ export const ProposalService = {
         dana_pihak_lain
       };
       
-      console.log("[SERVICE] Data pendanaan yang akan diupdate:", pendanaanData);
-      
       if (existingPendanaan) {
         // Update pendanaan yang sudah ada
         const { error: updatePendanaanError } = await supabase
@@ -567,11 +538,8 @@ export const ProposalService = {
           .eq('id', existingPendanaan.id);
         
         if (updatePendanaanError) {
-          console.error("[SERVICE] Error updating detail pendanaan:", updatePendanaanError);
           throw updatePendanaanError;
         }
-        
-        console.log("[SERVICE] Detail pendanaan berhasil diperbarui");
       } else {
         // Buat pendanaan baru jika belum ada
         const { error: insertPendanaanError } = await supabase
@@ -582,11 +550,8 @@ export const ProposalService = {
           });
         
         if (insertPendanaanError) {
-          console.error("[SERVICE] Error inserting detail pendanaan:", insertPendanaanError);
           throw insertPendanaanError;
         }
-        
-        console.log("[SERVICE] Detail pendanaan baru berhasil dibuat");
       }
     }
     
@@ -616,27 +581,19 @@ export const ProposalService = {
         proposalUpdateData.id_bidang_pkm = idBidangPkm;
       }
       
-      console.log("[SERVICE] Data proposal yang akan diupdate:", proposalUpdateData);
-      
       const { error: updateError } = await supabase
         .from('proposal')
         .update(proposalUpdateData)
         .eq('id_proposal', id);
       
       if (updateError) {
-        console.error("[SERVICE] Error updating proposal:", updateError);
         throw updateError;
       }
-      
-      console.log("[SERVICE] Data proposal berhasil diperbarui");
     }
     
     // Handle reviewer1 update
     if (input.reviewer1_id !== undefined) {
       try {
-        console.log("[SERVICE] Memproses reviewer1_id:", 
-          input.reviewer1_id === "" || input.reviewer1_id === "none" ? "null" : input.reviewer1_id);
-        
         // Standardize empty/none values
         const reviewer1Value = (input.reviewer1_id === "" || input.reviewer1_id === "none") 
           ? null 
@@ -652,34 +609,22 @@ export const ProposalService = {
         
         if (existingReviewer1 && reviewer1Value === null) {
           // Delete reviewer if it exists and new value is null
-          console.log("[SERVICE] Menghapus reviewer1 yang ada");
-          
           await supabase
             .from('reviewer')
             .delete()
             .eq('id_reviewer', existingReviewer1.id_reviewer);
-            
-          console.log("[SERVICE] Reviewer1 berhasil dihapus");
           
         } else if (existingReviewer1 && reviewer1Value !== null) {
           // Update reviewer if it exists and value has changed
           if (existingReviewer1.id_user !== reviewer1Value) {
-            console.log("[SERVICE] Mengupdate reviewer1 dari", existingReviewer1.id_user, "ke", reviewer1Value);
-            
             await supabase
               .from('reviewer')
               .update({ id_user: reviewer1Value })
               .eq('id_reviewer', existingReviewer1.id_reviewer);
-              
-            console.log("[SERVICE] Reviewer1 berhasil diupdate");
-          } else {
-            console.log("[SERVICE] Reviewer1 tidak berubah, skip update");
           }
           
         } else if (!existingReviewer1 && reviewer1Value !== null) {
           // Add new reviewer if it doesn't exist and new value is not null
-          console.log("[SERVICE] Menambahkan reviewer1 baru:", reviewer1Value);
-          
           // Verify user exists first
           const { data: userExists } = await supabase
             .from('users')
@@ -695,25 +640,16 @@ export const ProposalService = {
                 id_user: reviewer1Value,
                 no: 1
               });
-              
-            console.log("[SERVICE] Reviewer1 baru berhasil ditambahkan");
-          } else {
-            console.error("[SERVICE] User tidak ditemukan untuk reviewer1:", reviewer1Value);
           }
-        } else {
-          console.log("[SERVICE] Tidak ada perubahan pada reviewer1");
         }
       } catch (err) {
-        console.error("[SERVICE] Error saat memproses reviewer1:", err);
+        // Handle error
       }
     }
     
     // Handle reviewer2 update
     if (input.reviewer2_id !== undefined) {
       try {
-        console.log("[SERVICE] Memproses reviewer2_id:", 
-          input.reviewer2_id === "" || input.reviewer2_id === "none" ? "null" : input.reviewer2_id);
-        
         // Standardize empty/none values
         const reviewer2Value = (input.reviewer2_id === "" || input.reviewer2_id === "none") 
           ? null 
@@ -729,34 +665,22 @@ export const ProposalService = {
         
         if (existingReviewer2 && reviewer2Value === null) {
           // Delete reviewer if it exists and new value is null
-          console.log("[SERVICE] Menghapus reviewer2 yang ada");
-          
           await supabase
             .from('reviewer')
             .delete()
             .eq('id_reviewer', existingReviewer2.id_reviewer);
-            
-          console.log("[SERVICE] Reviewer2 berhasil dihapus");
           
         } else if (existingReviewer2 && reviewer2Value !== null) {
           // Update reviewer if it exists and value has changed
           if (existingReviewer2.id_user !== reviewer2Value) {
-            console.log("[SERVICE] Mengupdate reviewer2 dari", existingReviewer2.id_user, "ke", reviewer2Value);
-            
             await supabase
               .from('reviewer')
               .update({ id_user: reviewer2Value })
               .eq('id_reviewer', existingReviewer2.id_reviewer);
-              
-            console.log("[SERVICE] Reviewer2 berhasil diupdate");
-          } else {
-            console.log("[SERVICE] Reviewer2 tidak berubah, skip update");
           }
           
         } else if (!existingReviewer2 && reviewer2Value !== null) {
           // Add new reviewer if it doesn't exist and new value is not null
-          console.log("[SERVICE] Menambahkan reviewer2 baru:", reviewer2Value);
-          
           // Verify user exists first
           const { data: userExists } = await supabase
             .from('users')
@@ -772,25 +696,17 @@ export const ProposalService = {
                 id_user: reviewer2Value,
                 no: 2
               });
-              
-            console.log("[SERVICE] Reviewer2 baru berhasil ditambahkan");
-          } else {
-            console.error("[SERVICE] User tidak ditemukan untuk reviewer2:", reviewer2Value);
           }
-        } else {
-          console.log("[SERVICE] Tidak ada perubahan pada reviewer2");
         }
       } catch (err) {
-        console.error("[SERVICE] Error saat memproses reviewer2:", err);
+        // Handle error
       }
     }
     
     // Tunggu sebentar untuk memastikan semua operasi selesai
-    console.log("[SERVICE] Menunggu operasi database selesai...");
     await new Promise(resolve => setTimeout(resolve, 500));
     
     // Ambil data lengkap proposal yang sudah diupdate
-    console.log("[SERVICE] Mengambil data proposal yang sudah diperbarui");
     return await this.getById(id) as ProposalWithRelations;
   },
   
@@ -806,7 +722,6 @@ export const ProposalService = {
       .eq('id_proposal', id);
     
     if (error) {
-      console.error('Error deleting proposal:', error);
       throw error;
     }
     
@@ -823,7 +738,6 @@ export const ProposalService = {
       .order('nama');
     
     if (error) {
-      console.error('Error fetching bidang PKM:', error);
       throw error;
     }
     
@@ -841,7 +755,6 @@ export const ProposalService = {
       .order('username');
     
     if (error) {
-      console.error('Error fetching reviewers:', error);
       throw error;
     }
     
@@ -852,10 +765,7 @@ export const ProposalService = {
   async getProposalsByReviewerId(reviewerId: string): Promise<ProposalWithRelations[]> {
     const supabase = supabaseClient();
     
-    console.log('Mengambil proposal untuk reviewer ID:', reviewerId);
-    
     if (!reviewerId) {
-      console.error('reviewerId tidak tersedia');
       return [];
     }
     
@@ -881,7 +791,6 @@ export const ProposalService = {
       .eq('id_user', reviewerId);
     
     if (error) {
-      console.error('Error saat mengambil proposal untuk reviewer:', error);
       throw error;
     }
     
@@ -903,7 +812,6 @@ export const ProposalService = {
         };
       });
     
-    console.log('Transformed proposals data:', transformedData);
     return transformedData;
   },
   
@@ -943,7 +851,7 @@ export const ProposalService = {
                     await this.create(proposal);
                     successCount++;
                   } catch (error) {
-                    console.error('Error importing proposal:', error);
+                    // Handle error
                   }
                 }
                 
@@ -967,12 +875,12 @@ export const ProposalService = {
             // Buat proposal dari data yang diimpor
             let successCount = 0;
             
-    for (const proposal of proposals) {
+            for (const proposal of proposals) {
               try {
                 await this.create(proposal);
                 successCount++;
               } catch (error) {
-                console.error('Error importing proposal:', error);
+                // Handle error
               }
             }
             
@@ -1103,7 +1011,6 @@ export const ProposalService = {
           status_penilaian: item.penilaian_substansi?.[0]?.status || false
         }));
     } catch (error) {
-      console.error('Error in getProposalsByBidangAndReviewer:', error);
       throw error;
     }
   }

@@ -22,16 +22,12 @@ export const useReviewerDashboard = (reviewerId: string) => {
 
   // Mendapatkan ID reviewer dari prop atau localStorage
   const getUserId = (): string | null => {
-    // Prioritaskan reviewerId dari prop jika tersedia
     if (reviewerId) {
-      console.log('Menggunakan reviewerId dari prop:', reviewerId);
       return reviewerId;
     }
     
-    // Fallback ke localStorage jika prop tidak tersedia
     if (typeof window !== 'undefined') {
       const localId = localStorage.getItem('userId') || sessionStorage.getItem('userId');
-      console.log('Menggunakan reviewerId dari localStorage:', localId);
       return localId;
     }
     
@@ -46,20 +42,13 @@ export const useReviewerDashboard = (reviewerId: string) => {
 
       const userId = getUserId();
       
-      console.log('fetchDashboardData - userId yang digunakan:', userId);
-      
-      // Jika user ID tidak tersedia, mungkin user tidak login
       if (!userId) {
-        console.warn('User ID tidak tersedia, mengarahkan ke halaman login');
         router.push('/auth/login');
         return;
       }
 
-      // Ambil proposal yang ditugaskan ke reviewer
       const proposalsData = await ReviewerService.getAssignedProposals(userId);
-      console.log('Proposal yang diterima:', proposalsData);
       
-      // Ubah format data proposal untuk UI
       const proposalsWithReviewStatus = proposalsData.map(proposal => ({
         ...proposal,
         isReviewed: proposal.status_penilaian === 'reviewed'
@@ -67,12 +56,10 @@ export const useReviewerDashboard = (reviewerId: string) => {
       
       setProposals(proposalsWithReviewStatus);
 
-      // Ambil statistik reviewer
       const statsData = await ReviewerService.getReviewerStats(userId);
       setStats(statsData);
 
     } catch (err: any) {
-      console.error('Error saat memuat data dashboard reviewer:', err);
       setError(new Error(err.message || 'Gagal memuat data dashboard reviewer'));
       toast({
         title: 'Error',
@@ -86,7 +73,6 @@ export const useReviewerDashboard = (reviewerId: string) => {
 
   // Memuat data saat komponen dimount atau reviewerId berubah
   useEffect(() => {
-    console.log('useEffect triggered, reviewerId:', reviewerId);
     fetchDashboardData();
   }, [reviewerId]);
 
@@ -100,15 +86,9 @@ export const useReviewerDashboard = (reviewerId: string) => {
         throw new Error('User ID tidak tersedia');
       }
       
-      console.log('refreshProposals - menggunakan userId:', userId);
-      
-      // Gunakan ProposalService untuk mendapatkan proposal
       const reviewerProposals = await ProposalService.getProposalsByReviewerId(userId);
-      console.log('Proposal yang diterima dari refreshProposals:', reviewerProposals);
       
-      // Pastikan data memiliki format yang sesuai dengan kebutuhan UI
       const proposalsWithReviewStatus = reviewerProposals.map(proposal => {
-        // Pastikan kita menggunakan property yang benar
         const isReviewed = proposal.status_penilaian === 'reviewed' || 
                          (proposal as any).review_status === 'reviewed';
         
@@ -118,10 +98,8 @@ export const useReviewerDashboard = (reviewerId: string) => {
         };
       });
       
-      // Gunakan type assertion untuk mengatasi error TypeScript
       setProposals(proposalsWithReviewStatus as unknown as ProposalWithRelationsType[]);
     } catch (err: any) {
-      console.error('Error saat menyegarkan data proposal:', err);
       setError(new Error(err.message || 'Gagal menyegarkan data proposal'));
       toast({
         title: 'Error',

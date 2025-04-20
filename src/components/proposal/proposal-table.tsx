@@ -95,20 +95,19 @@ export function ProposalTable({
             <TableHead className="w-[50px]">No</TableHead>
             <TableHead>Judul</TableHead>
             <TableHead>Bidang PKM</TableHead>
-            <TableHead>Status</TableHead>
             <TableHead className="text-right">Aksi</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {isLoading ? (
             <TableRow>
-              <TableCell colSpan={5} className="text-center py-6 text-muted-foreground">
+              <TableCell colSpan={4} className="text-center py-6 text-muted-foreground">
                 Memuat data...
               </TableCell>
             </TableRow>
           ) : data.length === 0 ? (
             <TableRow>
-              <TableCell colSpan={5} className="text-center py-6 text-muted-foreground">
+              <TableCell colSpan={4} className="text-center py-6 text-muted-foreground">
                 Tidak ada data proposal
               </TableCell>
             </TableRow>
@@ -126,12 +125,6 @@ export function ProposalTable({
                   {item.judul}
                 </TableCell>
                 <TableCell>{item.bidang_pkm?.nama || '-'}</TableCell>
-                <TableCell>
-                  <Badge variant={statusVariant[item.status_penilaian as string] || "secondary"} className="flex w-fit items-center gap-1">
-                    <StatusIcon status={item.status_penilaian} />
-                    {item.status_penilaian || 'Belum Dinilai'}
-                  </Badge>
-                </TableCell>
                 <TableCell onClick={(e) => e.stopPropagation()}>
                   <div className="flex justify-end gap-2">
                     <TooltipProvider>

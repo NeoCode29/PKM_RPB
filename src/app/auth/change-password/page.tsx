@@ -41,7 +41,6 @@ export default function ChangePasswordPage() {
         setIsLoading(false);
       }
     } catch (error) {
-      console.error("Error changing password:", error);
       toast({
         title: "Terjadi kesalahan",
         description: "Gagal mengubah password, silakan coba lagi nanti.",
@@ -149,5 +148,3 @@ export default function ChangePasswordPage() {
     </div>
   );
 }
-
-

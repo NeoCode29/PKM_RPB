@@ -10,6 +10,7 @@ import { KriteriaAdministrasi, KriteriaAdministrasiService } from '@/services/kr
 import { PenilaianAdministrasi, PenilaianAdministrasiInput } from '@/services/penilaian-administrasi-service';
 import { useRouter } from 'next/navigation';
 import { ProposalService, ProposalWithRelations } from '@/services/proposal-service';
+import { PenilaianSubstansiService } from '@/services/penilaian-substansi-service';
 
 // Interface untuk item penilaian internal
 interface PenilaianItem {
@@ -99,21 +100,29 @@ export function useBidangProposals(userId: string, bidangId: number) {
       const proposalsWithPenilaian = await Promise.all(
         filteredProposals.map(async (proposal: ProposalWithRelations) => {
           try {
-            const penilaian = await PenilaianAdministrasiService.getPenilaianByReviewerAndProposal(
+            const penilaianAdm = await PenilaianAdministrasiService.getPenilaianByReviewerAndProposal(
+              userId,
+              proposal.id_proposal
+            );
+
+            // Tambahkan juga penilaian substansi
+            const penilaianSub = await PenilaianSubstansiService.getPenilaianByReviewerAndProposal(
               userId,
               proposal.id_proposal
             );
 
             return {
               ...proposal,
-              penilaian_administrasi: penilaian ? penilaian.penilaian : null
+              penilaian_administrasi: penilaianAdm ? penilaianAdm.penilaian : null,
+              penilaian_substansi: penilaianSub ? penilaianSub.penilaian : null
             };
           } catch (err) {
             console.error(`Error fetching penilaian for proposal ${proposal.id_proposal}:`, err);
             // Tetap kembalikan proposal meski tanpa penilaian
             return {
               ...proposal,
-              penilaian_administrasi: null
+              penilaian_administrasi: null,
+              penilaian_substansi: null
             };
           }
         })

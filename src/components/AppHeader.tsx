@@ -18,29 +18,7 @@ export default function AppHeader() {
       <div className="flex h-16 items-center justify-between px-6">
         <div className="flex items-center gap-2">
           <h1 className="text-xl font-semibold">Sistem PKM RPB</h1>
-        </div>
-        
-        <div className="flex items-center gap-4">
-          <Button variant="ghost" size="icon" aria-label="Notifikasi">
-            <Bell className="h-5 w-5" />
-          </Button>
-
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" className="rounded-full" aria-label="Menu Pengguna">
-                <UserCircle className="h-6 w-6" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-56">
-              <DropdownMenuLabel>Akun Saya</DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem>Profil</DropdownMenuItem>
-              <DropdownMenuItem>Pengaturan</DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem className="text-destructive">Logout</DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
+        </div>     
       </div>
     </header>
   );
