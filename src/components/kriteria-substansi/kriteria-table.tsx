@@ -1,6 +1,6 @@
 "use client"
 
-import { KriteriaSubstansi } from "@/app/admin/kriteria-substansi/utils";
+import { KriteriaSubstansi } from "@/services/kriteria-substansi-service";
 import {
   Table,
   TableBody,
