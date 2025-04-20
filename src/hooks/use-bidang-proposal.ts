@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { getAllBidangProposal } from "@/services/proposal-service"
+import { BidangPkmService } from "@/services/bidang-pkm-service"
 
 export function useBidangProposal() {
   const [data, setData] = useState<{
@@ -13,7 +13,7 @@ export function useBidangProposal() {
   const fetchData = async () => {
     try {
       setIsLoading(true)
-      const result = await getAllBidangProposal()
+      const result = await BidangPkmService.getAll()
       console.log("Data bidang PKM:", result) // Untuk debugging
       // Transformasi data untuk memastikan struktur yang benar
       const transformedData = result.map((item: any) => ({
