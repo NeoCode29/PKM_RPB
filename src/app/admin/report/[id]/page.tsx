@@ -9,8 +9,9 @@ interface ReportPageProps {
   };
 }
 
-export default function ReportPage({ params }: ReportPageProps) {
-  const id = parseInt(params.id);
+export default async function ReportPage({ params }: ReportPageProps) {
+  const paramsStore = await params;
+  const id = parseInt(paramsStore.id);
   
   // Validate ID
   if (isNaN(id)) {

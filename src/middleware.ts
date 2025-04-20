@@ -45,7 +45,7 @@ export async function middleware(request: NextRequest) {
     path.startsWith('/reviewer') ||
     path.startsWith('/settings') ||
     path === '/dashboard' ||
-    path === '/dashboadr'
+    path === '/dashboard'
   )) {
    
     const redirectUrl = new URL('/auth/login', request.url);
