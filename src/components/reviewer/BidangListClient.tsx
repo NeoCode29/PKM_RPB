@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { 
   Card, 
@@ -16,41 +16,16 @@ import { useToast } from '@/components/ui/use-toast';
 import { Folder, FileText, ArrowRight, Loader2 } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 
-export function BidangListClient() {
+interface BidangListClientProps {
+  userId: string;
+}
+
+export function BidangListClient({ userId }: BidangListClientProps) {
   const router = useRouter();
-  const [userId, setUserId] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
   
-  // Dapatkan userId dari client
-  useEffect(() => {
-    // Cek jika di browser
-    if (typeof window !== 'undefined') {
-      try {
-        const storedUserId = localStorage.getItem('userId') || sessionStorage.getItem('userId') || '';
-        // Pastikan userId valid
-        if (storedUserId && storedUserId !== 'undefined' && storedUserId !== 'null') {
-          setUserId(storedUserId);
-        } else {
-          // Jika tidak valid, set null dan tampilkan pesan
-          setUserId(null);
-          toast({
-            title: 'Error',
-            description: 'ID pengguna tidak valid. Silakan login kembali.',
-            variant: 'destructive',
-          });
-        }
-      } catch (error) {
-        setUserId(null);
-      }
-      setIsLoading(false);
-    }
-  }, [toast]);
-  
-  // Hanya jalankan hook jika userId valid
-  const { bidangList, loading, error, refreshBidangList } = usePenilaianBidang(
-    userId || '' // Jika null, kirim string kosong (hook akan handle internal loading state)
-  );
+  // Use the userId prop directly with the hook
+  const { bidangList, loading, error, refreshBidangList } = usePenilaianBidang(userId);
   
   useEffect(() => {
     if (error) {
@@ -61,6 +36,18 @@ export function BidangListClient() {
       });
     }
   }, [error, toast]);
+
+  useEffect(() => {
+    // Validate userId
+    if (!userId) {
+      toast({
+        title: 'Error',
+        description: 'ID pengguna tidak valid. Silakan login kembali.',
+        variant: 'destructive',
+      });
+      router.push('/login');
+    }
+  }, [userId, toast, router]);
   
   const handleBidangClick = (bidangId: number) => {
     router.push(`/reviewer/penilaian-administrasi/${bidangId}`);
@@ -79,16 +66,6 @@ export function BidangListClient() {
     ];
     return colors[index % colors.length];
   };
-  
-  // Tampilkan loading state saat memuat userId
-  if (isLoading) {
-    return (
-      <div className="flex justify-center items-center py-12">
-        <Loader2 className="mr-2 h-8 w-8 animate-spin" />
-        <span>Memuat data pengguna...</span>
-      </div>
-    );
-  }
   
   // Tampilkan pesan jika userId tidak valid
   if (!userId) {

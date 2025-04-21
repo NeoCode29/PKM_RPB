@@ -1,6 +1,8 @@
 import { Suspense } from 'react';
 import { BidangListClient } from '@/components/reviewer/BidangListClient';
 import { Skeleton } from '@/components/ui/skeleton';
+import { headers } from 'next/headers';
+import { getUserId } from '@/lib/auth/get-user-id';
 
 // Loading state component
 function Loading() {
@@ -18,7 +20,10 @@ function Loading() {
   );
 }
 
-export default function PenilaianAdministrasiPage() {
+export default async function PenilaianAdministrasiPage() {
+  // Get userId from headers (SSR)
+  const userId = await getUserId();
+
   return (
     <div className="container mx-auto py-6 space-y-8">
       <div>
@@ -29,7 +34,7 @@ export default function PenilaianAdministrasiPage() {
       </div>
       
       <Suspense fallback={<Loading />}>
-        <BidangListClient />
+        <BidangListClient userId={userId} />
       </Suspense>
     </div>
   );

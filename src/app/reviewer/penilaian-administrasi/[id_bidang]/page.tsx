@@ -49,24 +49,32 @@ async function getBidangName(bidangId: number) {
   }
 }
 
-export default async function ProposalListPage({ params }: { params: any  }) {
-  const paramsStore = await params;
+
+export default async function ProposalListPage({ params }: { params: Promise<{id_bidang: string}> }) {
   let userId: string;
+  let bidangId: number;
   
   try {
     userId = await getUserId();
+    const paramsStore = await params;
+    bidangId = parseInt(paramsStore.id_bidang);
+    
+    if (isNaN(bidangId)) {
+      console.error('Invalid bidang ID:', paramsStore.id_bidang);
+      redirect('/reviewer/penilaian-administrasi');
+    }
   } catch (error) {
-    console.error('Error getting user ID:', error);
+    console.error('Error in page initialization:', error);
     redirect('/login');
   }
-  
-  const bidangId = parseInt(paramsStore.id_bidang);
-  
-  if (isNaN(bidangId)) {
-    redirect('/reviewer/penilaian-administrasi');
-  }
 
-  const bidangName = await getBidangName(bidangId);
+  let bidangName: string;
+  try {
+    bidangName = await getBidangName(bidangId);
+  } catch (error) {
+    console.error('Error fetching bidang name:', error);
+    bidangName = 'Bidang PKM';
+  }
   
   return (
     <div className="container mx-auto py-6 space-y-6">
