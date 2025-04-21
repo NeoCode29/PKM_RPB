@@ -55,7 +55,14 @@ export default async function ProposalListPage({ params }: { params: Promise<{id
   let bidangId: number;
   
   try {
-    userId = await getUserId();
+    // Mendapatkan user ID dengan pengaman
+    try {
+      userId = await getUserId();
+    } catch (error) {
+      console.error('Error getting user ID:', error);
+      redirect('/login');
+    }
+    
     const paramsStore = await params;
     bidangId = parseInt(paramsStore.id_bidang);
     

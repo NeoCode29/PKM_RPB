@@ -2,6 +2,7 @@ import { Suspense } from 'react';
 import { BidangListSubstansiClient } from '@/components/reviewer/BidangListSubstansiClient';
 import { Skeleton } from '@/components/ui/skeleton';
 import { getUserId } from '@/lib/auth/get-user-id';
+import { redirect } from 'next/navigation';
 
 // Loading state component
 function Loading() {
@@ -20,8 +21,15 @@ function Loading() {
 }
 
 export default async function PenilaianSubstansiPage() {
-  // Get userId from headers (SSR)
-  const userId = await getUserId();
+  // Get userId from headers (SSR) with error handling
+  let userId: string;
+  
+  try {
+    userId = await getUserId();
+  } catch (error) {
+    console.error('Error getting user ID:', error);
+    redirect('/login');
+  }
 
   return (
     <div className="container mx-auto py-6 space-y-8">

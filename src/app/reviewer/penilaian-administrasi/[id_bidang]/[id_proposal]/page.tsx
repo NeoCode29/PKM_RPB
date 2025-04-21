@@ -60,7 +60,6 @@ export default async function PenilaianAdministrasiPage({
   try {
     userId = await getUserId();
   } catch (error) {
-    console.error('Error getting user ID:', error);
     redirect('/login');
   }
   

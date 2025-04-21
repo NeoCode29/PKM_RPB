@@ -1,7 +1,7 @@
 import { Suspense } from 'react';
 import { BidangListClient } from '@/components/reviewer/BidangListClient';
 import { Skeleton } from '@/components/ui/skeleton';
-import { headers } from 'next/headers';
+import { redirect } from 'next/navigation';
 import { getUserId } from '@/lib/auth/get-user-id';
 
 // Loading state component
@@ -21,8 +21,14 @@ function Loading() {
 }
 
 export default async function PenilaianAdministrasiPage() {
-  // Get userId from headers (SSR)
-  const userId = await getUserId();
+  // Get userId from headers (SSR) with error handling
+  let userId: string;
+  
+  try {
+    userId = await getUserId();
+  } catch (error) {
+    redirect('/login');
+  }
 
   return (
     <div className="container mx-auto py-6 space-y-8">
