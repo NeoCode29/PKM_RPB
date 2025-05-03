@@ -24,8 +24,12 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className={`${geistSans.variable} ${geistMono.variable} font-sans`}>
-      <body className="{}">
-        {children}
+      <body className="min-h-screen bg-background antialiased">
+        <div className="flex min-h-screen">
+          <main className="flex-1 min-h-screen">
+            {children}
+          </main>
+        </div>
       </body>
     </html>
   );

@@ -17,12 +17,13 @@ import {
   FileIcon 
 } from "lucide-react";
 
-interface SidebarMenuItemProps {
+export interface SidebarMenuItemProps {
   item: MenuItem;
   isActive: boolean;
+  onItemClick?: () => void;
 }
 
-export function SidebarMenuItemComponent({ item, isActive }: SidebarMenuItemProps) {
+export function SidebarMenuItemComponent({ item, isActive, onItemClick }: SidebarMenuItemProps) {
   // Map string icon ke komponen icon
   const getIcon = () => {
     switch (item.icon) {
@@ -47,6 +48,7 @@ export function SidebarMenuItemComponent({ item, isActive }: SidebarMenuItemProp
             "flex items-center py-2 px-3 rounded-md w-full text-sm",
             isActive ? "bg-primary/10 text-primary font-medium" : "hover:bg-secondary"
           )}
+          onClick={onItemClick}
         >
           <div className={cn(
             "mr-3",

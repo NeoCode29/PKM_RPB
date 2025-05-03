@@ -13,9 +13,9 @@ export default async function AdminLayout({
 }) {
   return (
     <SidebarProvider>
-      <div className="grid grid-cols-[250px_1fr] min-h-screen h-screen overflow-hidden w-screen">
+      <div className="grid grid-cols-[0px_1fr] md:grid-cols-[250px_1fr] min-h-screen h-screen overflow-hidden w-screen">
         {/* Sidebar */}
-        <aside className="border-r h-screen overflow-auto">
+        <aside className="border-r h-screen overflow-auto ">
           <AppSidebar menu={adminMenu} title="Admin Panel" />
         </aside>
         

@@ -182,7 +182,9 @@ export function ProposalDetailCard({ proposal, showBasicInfoOnly = false, showDe
         {/* Detail Proposal */}
         <Card>
           <CardHeader>
-            <CardTitle className="text-xl">{proposal.judul}</CardTitle>
+            <CardTitle className="text-xl">
+              {proposal.judul.length > 100 ? `${proposal.judul.substring(0, 80)}...` : proposal.judul}
+            </CardTitle>
             <CardDescription>Bidang: {proposal.bidang_pkm?.nama || '-'}</CardDescription>
           </CardHeader>
           <CardContent>

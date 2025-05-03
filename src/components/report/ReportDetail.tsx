@@ -675,7 +675,9 @@ export default function ReportDetail({ proposalId }: ReportDetailProps) {
         <CardHeader>
           <div className="flex justify-between items-start">
             <div>
-              <CardTitle className="text-2xl">{proposal.judul}</CardTitle>
+              <CardTitle className="text-2xl">
+                {proposal.judul.length > 120 ? `${proposal.judul.substring(0, 80)}...` : proposal.judul}
+              </CardTitle>
               <CardDescription className="mt-2">
                 Bidang PKM: {proposal.bidang_pkm?.nama || '-'}
               </CardDescription>

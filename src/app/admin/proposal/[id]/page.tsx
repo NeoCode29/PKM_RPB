@@ -366,7 +366,9 @@ export default function ProposalDetailPage({ params }: { params: any }) {
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0">
               <div>
-                <CardTitle className="text-2xl">{proposal.judul}</CardTitle>
+                <CardTitle className="text-2xl">
+                  {proposal.judul.length > 50 ? `${proposal.judul.substring(0, 47)}...` : proposal.judul}
+                </CardTitle>
                 <CardDescription>ID: {proposal.id_proposal}</CardDescription>
               </div>
             </CardHeader>

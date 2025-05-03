@@ -188,7 +188,7 @@ export default function ReportPage() {
                     <TableRow key={proposal.id_proposal}>
                       <TableCell>{index + 1}</TableCell>
                       <TableCell className="font-medium max-w-[300px]">
-                        {proposal.judul}
+                        {proposal.judul.length > 50 ? `${proposal.judul.substring(0, 47)}...` : proposal.judul}
                       </TableCell>
                       <TableCell>
                         <div>

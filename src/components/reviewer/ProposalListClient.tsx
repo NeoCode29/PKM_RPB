@@ -256,7 +256,7 @@ export function ProposalListClient({ bidangId, userId }: ProposalListClientProps
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Judul Proposal</TableHead>
+              <TableHead className='w-[400px] overflow-hidden'>Judul Proposal</TableHead>
               <TableHead>Ketua</TableHead>
               <TableHead>Status</TableHead>
               <TableHead className="text-right">Aksi</TableHead>
@@ -265,7 +265,9 @@ export function ProposalListClient({ bidangId, userId }: ProposalListClientProps
           <TableBody>
             {filteredProposals.map((proposal) => (
               <TableRow key={proposal.id_proposal}>
-                <TableCell className="font-medium">{proposal.judul}</TableCell>
+                <TableCell className="font-medium">
+                  {proposal.judul.length > 50 ? `${proposal.judul.substring(0, 47)}...` : proposal.judul}
+                </TableCell>
                 <TableCell>{proposal.mahasiswa?.nama}</TableCell>
                 <TableCell>
                   <Badge 
