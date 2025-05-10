@@ -62,8 +62,14 @@ export function useBidangProposals(userId: string, bidangId: number) {
   const [proposals, setProposals] = useState<ProposalWithRelations[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
+  const [pagination, setPagination] = useState({
+    page: 1,
+    pageSize: 10,
+    count: 0,
+    totalPages: 0
+  });
 
-  const fetchProposals = useCallback(async () => {
+  const fetchProposals = useCallback(async (page: number = 1, pageSize: number = 10) => {
     try {
       setLoading(true);
       setError(null);
@@ -78,9 +84,11 @@ export function useBidangProposals(userId: string, bidangId: number) {
         throw new Error('ID bidang PKM tidak valid.');
       }
 
-      // Ambil data proposal
+      // Ambil data proposal dengan pagination
       const result = await ProposalService.getAll({
-        bidang_pkm_id: bidangId
+        bidang_pkm_id: bidangId,
+        page,
+        pageSize
       });
 
       if (!result || !result.data) {
@@ -129,6 +137,12 @@ export function useBidangProposals(userId: string, bidangId: number) {
       );
 
       setProposals(proposalsWithPenilaian);
+      setPagination({
+        page: result.page,
+        pageSize: result.pageSize,
+        count: result.count,
+        totalPages: result.totalPages
+      });
       setError(null);
     } catch (err) {
       console.error('Error fetching proposals:', err);
@@ -152,7 +166,7 @@ export function useBidangProposals(userId: string, bidangId: number) {
         }
 
         if (isMounted) {
-          await fetchProposals();
+          await fetchProposals(pagination.page, pagination.pageSize);
         }
       } catch (err) {
         if (isMounted) {
@@ -172,21 +186,39 @@ export function useBidangProposals(userId: string, bidangId: number) {
     return () => {
       isMounted = false;
     };
-  }, [userId, fetchProposals]);
+  }, [userId, fetchProposals, pagination.page, pagination.pageSize]);
 
   const refreshProposals = useCallback(async () => {
     if (!userId || userId === 'undefined' || userId === 'null' || userId.trim() === '') {
       setError(new Error('Sesi telah berakhir. Silakan login kembali.'));
       return;
     }
-    await fetchProposals();
-  }, [userId, fetchProposals]);
+    await fetchProposals(pagination.page, pagination.pageSize);
+  }, [userId, fetchProposals, pagination.page, pagination.pageSize]);
+
+  const changePage = useCallback((newPage: number) => {
+    setPagination(prev => ({
+      ...prev,
+      page: newPage
+    }));
+  }, []);
+
+  const changePageSize = useCallback((newPageSize: number) => {
+    setPagination(prev => ({
+      ...prev,
+      page: 1,
+      pageSize: newPageSize
+    }));
+  }, []);
 
   return {
     proposals,
     loading,
     error,
-    refreshProposals
+    refreshProposals,
+    pagination,
+    changePage,
+    changePageSize
   };
 }
 

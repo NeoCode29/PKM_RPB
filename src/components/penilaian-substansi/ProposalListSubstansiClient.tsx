@@ -20,7 +20,11 @@ import {
   Eye, 
   Search,
   Filter,
-  FileText
+  FileText,
+  ChevronLeft,
+  ChevronRight,
+  ChevronsLeft,
+  ChevronsRight
 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { 
@@ -57,7 +61,15 @@ export function ProposalListSubstansiClient({ bidangId, userId }: ProposalListSu
   const { toast } = useToast();
   
   // Gunakan hook dengan userId dari props
-  const { proposals, loading: proposalsLoading, error, refreshProposals } = useBidangProposals(
+  const { 
+    proposals, 
+    loading: proposalsLoading, 
+    error, 
+    refreshProposals,
+    pagination,
+    changePage,
+    changePageSize
+  } = useBidangProposals(
     userId, 
     bidangId
   );
@@ -179,7 +191,7 @@ export function ProposalListSubstansiClient({ bidangId, userId }: ProposalListSu
       <div className="flex flex-col gap-2 sm:flex-row sm:justify-between sm:items-center">
         <div className="flex items-center gap-4">
           <p className="text-muted-foreground">
-            {filteredProposals.length} proposal yang perlu dinilai
+            {pagination.count} proposal yang perlu dinilai
           </p>
         </div>
         
@@ -219,7 +231,7 @@ export function ProposalListSubstansiClient({ bidangId, userId }: ProposalListSu
           <TableHeader>
             <TableRow>
               <TableHead>No</TableHead>
-              <TableHead>Judul Proposal</TableHead>
+              <TableHead className="max-w-[300px]">Judul Proposal</TableHead>
               <TableHead>Pengusul</TableHead>
               <TableHead>Status Penilaian</TableHead>
               <TableHead>Tanggal Submit</TableHead>
@@ -246,7 +258,9 @@ export function ProposalListSubstansiClient({ bidangId, userId }: ProposalListSu
                 <TableRow key={proposal.id_proposal}>
                   <TableCell>{index + 1}</TableCell>
                   <TableCell className="font-medium max-w-[300px]">
-                    {proposal.judul.length > 50 ? `${proposal.judul.substring(0, 47)}...` : proposal.judul}
+                    <div className="truncate" title={proposal.judul}>
+                      {proposal.judul}
+                    </div>
                   </TableCell>
                   <TableCell>
                     <div>
@@ -282,6 +296,73 @@ export function ProposalListSubstansiClient({ bidangId, userId }: ProposalListSu
             )}
           </TableBody>
         </Table>
+      </div>
+
+      {/* Pagination Controls */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <p className="text-sm text-muted-foreground">
+            Rows per page
+          </p>
+          <Select
+            value={pagination.pageSize.toString()}
+            onValueChange={(value) => changePageSize(Number(value))}
+          >
+            <SelectTrigger className="h-8 w-[70px]">
+              <SelectValue placeholder={pagination.pageSize} />
+            </SelectTrigger>
+            <SelectContent side="top">
+              {[10, 20, 30, 40, 50].map((pageSize) => (
+                <SelectItem key={pageSize} value={pageSize.toString()}>
+                  {pageSize}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="flex items-center gap-2">
+          <p className="text-sm text-muted-foreground">
+            Page {pagination.page} of {pagination.totalPages}
+          </p>
+          <div className="flex items-center gap-1">
+            <Button
+              variant="outline"
+              size="icon"
+              className="h-8 w-8"
+              onClick={() => changePage(1)}
+              disabled={pagination.page === 1}
+            >
+              <ChevronsLeft className="h-4 w-4" />
+            </Button>
+            <Button
+              variant="outline"
+              size="icon"
+              className="h-8 w-8"
+              onClick={() => changePage(pagination.page - 1)}
+              disabled={pagination.page === 1}
+            >
+              <ChevronLeft className="h-4 w-4" />
+            </Button>
+            <Button
+              variant="outline"
+              size="icon"
+              className="h-8 w-8"
+              onClick={() => changePage(pagination.page + 1)}
+              disabled={pagination.page === pagination.totalPages}
+            >
+              <ChevronRight className="h-4 w-4" />
+            </Button>
+            <Button
+              variant="outline"
+              size="icon"
+              className="h-8 w-8"
+              onClick={() => changePage(pagination.totalPages)}
+              disabled={pagination.page === pagination.totalPages}
+            >
+              <ChevronsRight className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
       </div>
     </div>
   );
