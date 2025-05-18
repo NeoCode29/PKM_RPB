@@ -975,15 +975,38 @@ export const ProposalService = {
   },
   
   // Mendapatkan proposal berdasarkan bidang dan reviewer
-  async getProposalsByBidangAndReviewer(userId: string, bidangId: number): Promise<ProposalReviewData[]> {
+  async getProposalsByBidangAndReviewer(userId: string, bidangId: number, page: number = 1, pageSize: number = 10): Promise<{data: ProposalReviewData[], count: number}> {
     const supabase = supabaseClient();
     
     try {
+      // Ambil data reviewer untuk menghitung total jumlah proposal
+      const { data: totalData, error: countError } = await supabase
+        .from('reviewer')
+        .select(`
+          id_reviewer,
+          proposal!inner (
+            id_proposal,
+            id_bidang_pkm
+          )
+        `)
+        .eq('id_user', userId)
+        .eq('proposal.id_bidang_pkm', bidangId);
+      
+      if (countError) throw countError;
+      
+      // Hitung total yang cocok dengan criteria
+      const count = totalData ? totalData.length : 0;
+      
+      // Hitung offset untuk pagination
+      const from = (page - 1) * pageSize;
+      const to = from + pageSize - 1;
+      
+      // Query data dengan pagination
       const { data, error } = await supabase
         .from('reviewer')
         .select(`
           id_reviewer,
-          proposal (
+          proposal!inner (
             id_proposal,
             judul,
             id_bidang_pkm,
@@ -996,20 +1019,25 @@ export const ProposalService = {
           )
         `)
         .eq('id_user', userId)
+        .eq('proposal.id_bidang_pkm', bidangId)
+        .range(from, to)
         .returns<ReviewerQueryResult[]>();
 
       if (error) throw error;
-      if (!data) return [];
+      if (!data) return { data: [], count: 0 };
 
-      // Filter dan transform data
-      return data
-        .filter(item => item.proposal?.id_bidang_pkm === bidangId)
-        .map(item => ({
-          id_proposal: item.proposal.id_proposal,
-          judul: item.proposal.judul,
-          ketua: item.proposal.mahasiswa?.nama || '',
-          status_penilaian: item.penilaian_substansi?.[0]?.status || false
-        }));
+      // Transform data
+      const transformedData = data.map(item => ({
+        id_proposal: item.proposal.id_proposal,
+        judul: item.proposal.judul,
+        ketua: item.proposal.mahasiswa?.nama || '',
+        status_penilaian: item.penilaian_substansi?.[0]?.status || false
+      }));
+      
+      return {
+        data: transformedData,
+        count
+      };
     } catch (error) {
       throw error;
     }

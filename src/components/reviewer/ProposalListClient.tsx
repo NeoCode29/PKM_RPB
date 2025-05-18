@@ -22,10 +22,7 @@ import {
   Filter,
   FileText,
   AlertCircle,
-  ChevronLeft,
-  ChevronRight,
-  ChevronsLeft,
-  ChevronsRight
+  Loader2
 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { 
@@ -42,6 +39,15 @@ import { id } from 'date-fns/locale';
 import { Card, CardDescription, CardFooter, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { ProposalWithRelations } from '@/services/proposal-service';
+import {
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
 
 interface ProposalListClientProps {
   bidangId: number;
@@ -68,9 +74,9 @@ export function ProposalListClient({ bidangId, userId }: ProposalListClientProps
     loading: proposalsLoading, 
     error, 
     refreshProposals,
-    pagination,
-    changePage,
-    changePageSize
+    currentPage,
+    totalPages,
+    changePage
   } = useBidangProposals(
     userId, 
     bidangId
@@ -146,7 +152,7 @@ export function ProposalListClient({ bidangId, userId }: ProposalListClientProps
   };
   
   // Tampilkan loading state
-  if (proposalsLoading) {
+  if (proposalsLoading && currentPage === 1) {
     return (
       <div className="space-y-4">
         <div className="flex flex-col gap-2 sm:flex-row sm:justify-between sm:items-center mb-6">
@@ -229,7 +235,7 @@ export function ProposalListClient({ bidangId, userId }: ProposalListClientProps
       <div className="flex flex-col gap-2 sm:flex-row sm:justify-between sm:items-center">
         <div className="flex items-center gap-4">
           <p className="text-muted-foreground">
-            {pagination.count} proposal yang perlu dinilai
+            {filteredProposals.length} proposal yang perlu dinilai
           </p>
         </div>
         
@@ -301,76 +307,87 @@ export function ProposalListClient({ bidangId, userId }: ProposalListClientProps
                 </TableCell>
               </TableRow>
             ))}
+            
+            {proposalsLoading && currentPage > 1 && (
+              <TableRow>
+                <TableCell colSpan={4} className="text-center py-8">
+                  <div className="flex justify-center">
+                    <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                  </div>
+                  <p className="mt-2 text-muted-foreground">Memuat data proposal...</p>
+                </TableCell>
+              </TableRow>
+            )}
+            
+            {!proposalsLoading && filteredProposals.length === 0 && (
+              <TableRow>
+                <TableCell colSpan={4} className="text-center py-8 text-muted-foreground">
+                  Tidak ada proposal yang sesuai dengan filter
+                </TableCell>
+              </TableRow>
+            )}
           </TableBody>
         </Table>
       </div>
-
-      {/* Pagination Controls */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <p className="text-sm text-muted-foreground">
-            Rows per page
-          </p>
-          <Select
-            value={pagination.pageSize.toString()}
-            onValueChange={(value) => changePageSize(Number(value))}
-          >
-            <SelectTrigger className="h-8 w-[70px]">
-              <SelectValue placeholder={pagination.pageSize} />
-            </SelectTrigger>
-            <SelectContent side="top">
-              {[10, 20, 30, 40, 50].map((pageSize) => (
-                <SelectItem key={pageSize} value={pageSize.toString()}>
-                  {pageSize}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-        <div className="flex items-center gap-2">
-          <p className="text-sm text-muted-foreground">
-            Page {pagination.page} of {pagination.totalPages}
-          </p>
-          <div className="flex items-center gap-1">
-            <Button
-              variant="outline"
-              size="icon"
-              className="h-8 w-8"
-              onClick={() => changePage(1)}
-              disabled={pagination.page === 1}
-            >
-              <ChevronsLeft className="h-4 w-4" />
-            </Button>
-            <Button
-              variant="outline"
-              size="icon"
-              className="h-8 w-8"
-              onClick={() => changePage(pagination.page - 1)}
-              disabled={pagination.page === 1}
-            >
-              <ChevronLeft className="h-4 w-4" />
-            </Button>
-            <Button
-              variant="outline"
-              size="icon"
-              className="h-8 w-8"
-              onClick={() => changePage(pagination.page + 1)}
-              disabled={pagination.page === pagination.totalPages}
-            >
-              <ChevronRight className="h-4 w-4" />
-            </Button>
-            <Button
-              variant="outline"
-              size="icon"
-              className="h-8 w-8"
-              onClick={() => changePage(pagination.totalPages)}
-              disabled={pagination.page === pagination.totalPages}
-            >
-              <ChevronsRight className="h-4 w-4" />
-            </Button>
-          </div>
-        </div>
-      </div>
+      
+      {/* Pagination */}
+      {totalPages > 1 && (
+        <Pagination className="mx-auto mt-4">
+          <PaginationContent>
+            <PaginationItem>
+              <PaginationPrevious 
+                onClick={() => currentPage > 1 && changePage(currentPage - 1)}
+                className={currentPage <= 1 ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+              />
+            </PaginationItem>
+            
+            {[...Array(totalPages)].map((_, i) => {
+              const page = i + 1;
+              // Hanya tampilkan halaman pertama, halaman saat ini, halaman terakhir, dan 1 halaman di kanan-kiri halaman saat ini
+              if (
+                page === 1 || 
+                page === totalPages || 
+                page === currentPage || 
+                page === currentPage - 1 || 
+                page === currentPage + 1
+              ) {
+                return (
+                  <PaginationItem key={page}>
+                    <PaginationLink
+                      onClick={() => changePage(page)}
+                      isActive={page === currentPage}
+                      className="cursor-pointer"
+                    >
+                      {page}
+                    </PaginationLink>
+                  </PaginationItem>
+                );
+              }
+              
+              // Tampilkan ellipsis untuk halaman yang dilewati
+              if (
+                (page === currentPage - 2 && currentPage > 3) || 
+                (page === currentPage + 2 && currentPage < totalPages - 2)
+              ) {
+                return (
+                  <PaginationItem key={page}>
+                    <PaginationEllipsis />
+                  </PaginationItem>
+                );
+              }
+              
+              return null;
+            })}
+            
+            <PaginationItem>
+              <PaginationNext
+                onClick={() => currentPage < totalPages && changePage(currentPage + 1)}
+                className={currentPage >= totalPages ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+              />
+            </PaginationItem>
+          </PaginationContent>
+        </Pagination>
+      )}
     </div>
   );
 } 

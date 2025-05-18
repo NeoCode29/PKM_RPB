@@ -62,14 +62,11 @@ export function useBidangProposals(userId: string, bidangId: number) {
   const [proposals, setProposals] = useState<ProposalWithRelations[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
-  const [pagination, setPagination] = useState({
-    page: 1,
-    pageSize: 10,
-    count: 0,
-    totalPages: 0
-  });
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+  const [totalCount, setTotalCount] = useState(0);
 
-  const fetchProposals = useCallback(async (page: number = 1, pageSize: number = 10) => {
+  const fetchProposals = useCallback(async (page = 1) => {
     try {
       setLoading(true);
       setError(null);
@@ -85,28 +82,24 @@ export function useBidangProposals(userId: string, bidangId: number) {
       }
 
       // Ambil data proposal dengan pagination
-      const result = await ProposalService.getAll({
-        bidang_pkm_id: bidangId,
+      const result = await ProposalService.getProposalsByBidangAndReviewer(
+        userId, 
+        bidangId,
         page,
         pageSize
-      });
+      );
 
-      if (!result || !result.data) {
+      if (!result) {
         throw new Error('Gagal memuat data proposal.');
       }
 
-      if (!Array.isArray(result.data)) {
-        throw new Error('Format data proposal tidak valid.');
-      }
-
-      // Filter proposal yang ditugaskan ke reviewer ini
-      const filteredProposals = result.data.filter(proposal => 
-        proposal.reviewers?.some(reviewer => reviewer.id_user === userId)
-      );
+      // Update total count
+      setTotalCount(result.count);
+      setCurrentPage(page);
 
       // Ambil data penilaian administrasi untuk setiap proposal
       const proposalsWithPenilaian = await Promise.all(
-        filteredProposals.map(async (proposal: ProposalWithRelations) => {
+        result.data.map(async (proposal: any) => {
           try {
             const penilaianAdm = await PenilaianAdministrasiService.getPenilaianByReviewerAndProposal(
               userId,
@@ -137,21 +130,18 @@ export function useBidangProposals(userId: string, bidangId: number) {
       );
 
       setProposals(proposalsWithPenilaian);
-      setPagination({
-        page: result.page,
-        pageSize: result.pageSize,
-        count: result.count,
-        totalPages: result.totalPages
-      });
       setError(null);
     } catch (err) {
       console.error('Error fetching proposals:', err);
       setError(err instanceof Error ? err : new Error('Terjadi kesalahan saat memuat data.'));
       setProposals([]);
     } finally {
-      setLoading(false);
+      // Berikan delay kecil sebelum loading di-false
+      setTimeout(() => {
+        setLoading(false);
+      }, 300);
     }
-  }, [userId, bidangId]);
+  }, [userId, bidangId, pageSize]);
 
   useEffect(() => {
     let isMounted = true;
@@ -166,7 +156,7 @@ export function useBidangProposals(userId: string, bidangId: number) {
         }
 
         if (isMounted) {
-          await fetchProposals(pagination.page, pagination.pageSize);
+          await fetchProposals(1);
         }
       } catch (err) {
         if (isMounted) {
@@ -176,7 +166,13 @@ export function useBidangProposals(userId: string, bidangId: number) {
         }
       } finally {
         if (isMounted) {
-          setLoading(false);
+          // Pastikan loading state tetap true jika masih ada loading
+          // Berikan delay untuk menghindari flickering
+          setTimeout(() => {
+            if (isMounted) {
+              setLoading(false);
+            }
+          }, 300);
         }
       }
     };
@@ -186,39 +182,30 @@ export function useBidangProposals(userId: string, bidangId: number) {
     return () => {
       isMounted = false;
     };
-  }, [userId, fetchProposals, pagination.page, pagination.pageSize]);
+  }, [userId, fetchProposals]);
 
   const refreshProposals = useCallback(async () => {
     if (!userId || userId === 'undefined' || userId === 'null' || userId.trim() === '') {
       setError(new Error('Sesi telah berakhir. Silakan login kembali.'));
       return;
     }
-    await fetchProposals(pagination.page, pagination.pageSize);
-  }, [userId, fetchProposals, pagination.page, pagination.pageSize]);
+    await fetchProposals(currentPage);
+  }, [userId, fetchProposals, currentPage]);
 
-  const changePage = useCallback((newPage: number) => {
-    setPagination(prev => ({
-      ...prev,
-      page: newPage
-    }));
-  }, []);
-
-  const changePageSize = useCallback((newPageSize: number) => {
-    setPagination(prev => ({
-      ...prev,
-      page: 1,
-      pageSize: newPageSize
-    }));
-  }, []);
+  const changePage = useCallback((page: number) => {
+    fetchProposals(page);
+  }, [fetchProposals]);
 
   return {
     proposals,
     loading,
     error,
     refreshProposals,
-    pagination,
-    changePage,
-    changePageSize
+    currentPage,
+    pageSize,
+    totalCount,
+    totalPages: Math.ceil(totalCount / pageSize),
+    changePage
   };
 }
 

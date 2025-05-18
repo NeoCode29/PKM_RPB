@@ -21,10 +21,7 @@ import {
   Search,
   Filter,
   FileText,
-  ChevronLeft,
-  ChevronRight,
-  ChevronsLeft,
-  ChevronsRight
+  Loader2
 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { 
@@ -40,6 +37,15 @@ import { format } from 'date-fns';
 import { id } from 'date-fns/locale';
 import { Card, CardDescription, CardFooter, CardTitle } from '@/components/ui/card';
 import { ProposalWithRelations } from '@/services/proposal-service';
+import {
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
 
 // Interface untuk memperluas ProposalWithRelations dengan penilaian_substansi
 interface ExtendedProposal extends ProposalWithRelations {
@@ -66,9 +72,9 @@ export function ProposalListSubstansiClient({ bidangId, userId }: ProposalListSu
     loading: proposalsLoading, 
     error, 
     refreshProposals,
-    pagination,
-    changePage,
-    changePageSize
+    currentPage,
+    totalPages,
+    changePage 
   } = useBidangProposals(
     userId, 
     bidangId
@@ -148,8 +154,28 @@ export function ProposalListSubstansiClient({ bidangId, userId }: ProposalListSu
     return status ? 'Sudah Dinilai' : 'Belum Dinilai';
   };
   
+  // Fungsi untuk memformat tanggal dengan penanganan kesalahan
+  const formatSafeDate = (dateString: string | null | undefined) => {
+    if (!dateString) return '-';
+    
+    try {
+      // Coba parsing tanggal
+      const date = new Date(dateString);
+      
+      // Cek apakah tanggal valid
+      if (isNaN(date.getTime())) {
+        return '-';
+      }
+      
+      return format(date, 'dd MMMM yyyy', { locale: id });
+    } catch (error) {
+      console.error('Error formatting date:', error, dateString);
+      return '-';
+    }
+  };
+  
   // Tampilkan loading state
-  if (proposalsLoading) {
+  if (proposalsLoading && currentPage === 1) {
     return (
       <div className="space-y-6">
         <div className="flex items-center gap-4">
@@ -191,7 +217,7 @@ export function ProposalListSubstansiClient({ bidangId, userId }: ProposalListSu
       <div className="flex flex-col gap-2 sm:flex-row sm:justify-between sm:items-center">
         <div className="flex items-center gap-4">
           <p className="text-muted-foreground">
-            {pagination.count} proposal yang perlu dinilai
+            {filteredProposals.length} proposal yang perlu dinilai
           </p>
         </div>
         
@@ -231,44 +257,33 @@ export function ProposalListSubstansiClient({ bidangId, userId }: ProposalListSu
           <TableHeader>
             <TableRow>
               <TableHead>No</TableHead>
-              <TableHead className="max-w-[300px]">Judul Proposal</TableHead>
-              <TableHead>Pengusul</TableHead>
+              <TableHead>Judul Proposal</TableHead>
               <TableHead>Status Penilaian</TableHead>
-              <TableHead>Tanggal Submit</TableHead>
               <TableHead className="text-right">Aksi</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {proposalsLoading ? (
+            {proposalsLoading && currentPage > 1 ? (
               <TableRow>
-                <TableCell colSpan={6} className="text-center py-10">
+                <TableCell colSpan={4} className="text-center py-10">
                   <div className="flex justify-center">
-                    <Skeleton className="h-8 w-8" />
+                    <Loader2 className="h-8 w-8 animate-spin text-primary" />
                   </div>
+                  <p className="mt-2 text-muted-foreground">Memuat data proposal...</p>
                 </TableCell>
               </TableRow>
             ) : filteredProposals.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={6} className="text-center py-10">
+                <TableCell colSpan={4} className="text-center py-10">
                   Tidak ada proposal yang ditemukan
                 </TableCell>
               </TableRow>
             ) : (
               filteredProposals.map((proposal, index) => (
                 <TableRow key={proposal.id_proposal}>
-                  <TableCell>{index + 1}</TableCell>
+                  <TableCell>{(currentPage - 1) * 10 + index + 1}</TableCell>
                   <TableCell className="font-medium max-w-[300px]">
-                    <div className="truncate" title={proposal.judul}>
-                      {proposal.judul}
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <div>
-                      <p className="font-medium">{proposal.mahasiswa?.nama || '-'}</p>
-                      <p className="text-sm text-muted-foreground">
-                        {proposal.mahasiswa?.nim || '-'}
-                      </p>
-                    </div>
+                    {proposal.judul.length > 50 ? `${proposal.judul.substring(0, 47)}...` : proposal.judul}
                   </TableCell>
                   <TableCell>
                     <Badge 
@@ -277,9 +292,6 @@ export function ProposalListSubstansiClient({ bidangId, userId }: ProposalListSu
                     >
                       {formatStatusPenilaian(proposal.penilaian_substansi?.status)}
                     </Badge>
-                  </TableCell>
-                  <TableCell>
-                    {format(new Date(proposal.created_at), 'dd MMMM yyyy', { locale: id })}
                   </TableCell>
                   <TableCell className="text-right">
                     <Button
@@ -297,73 +309,65 @@ export function ProposalListSubstansiClient({ bidangId, userId }: ProposalListSu
           </TableBody>
         </Table>
       </div>
-
-      {/* Pagination Controls */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <p className="text-sm text-muted-foreground">
-            Rows per page
-          </p>
-          <Select
-            value={pagination.pageSize.toString()}
-            onValueChange={(value) => changePageSize(Number(value))}
-          >
-            <SelectTrigger className="h-8 w-[70px]">
-              <SelectValue placeholder={pagination.pageSize} />
-            </SelectTrigger>
-            <SelectContent side="top">
-              {[10, 20, 30, 40, 50].map((pageSize) => (
-                <SelectItem key={pageSize} value={pageSize.toString()}>
-                  {pageSize}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-        <div className="flex items-center gap-2">
-          <p className="text-sm text-muted-foreground">
-            Page {pagination.page} of {pagination.totalPages}
-          </p>
-          <div className="flex items-center gap-1">
-            <Button
-              variant="outline"
-              size="icon"
-              className="h-8 w-8"
-              onClick={() => changePage(1)}
-              disabled={pagination.page === 1}
-            >
-              <ChevronsLeft className="h-4 w-4" />
-            </Button>
-            <Button
-              variant="outline"
-              size="icon"
-              className="h-8 w-8"
-              onClick={() => changePage(pagination.page - 1)}
-              disabled={pagination.page === 1}
-            >
-              <ChevronLeft className="h-4 w-4" />
-            </Button>
-            <Button
-              variant="outline"
-              size="icon"
-              className="h-8 w-8"
-              onClick={() => changePage(pagination.page + 1)}
-              disabled={pagination.page === pagination.totalPages}
-            >
-              <ChevronRight className="h-4 w-4" />
-            </Button>
-            <Button
-              variant="outline"
-              size="icon"
-              className="h-8 w-8"
-              onClick={() => changePage(pagination.totalPages)}
-              disabled={pagination.page === pagination.totalPages}
-            >
-              <ChevronsRight className="h-4 w-4" />
-            </Button>
-          </div>
-        </div>
-      </div>
+      
+      {/* Pagination */}
+      {totalPages > 1 && (
+        <Pagination className="mx-auto mt-4">
+          <PaginationContent>
+            <PaginationItem>
+              <PaginationPrevious 
+                onClick={() => currentPage > 1 && changePage(currentPage - 1)}
+                className={currentPage <= 1 ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+              />
+            </PaginationItem>
+            
+            {[...Array(totalPages)].map((_, i) => {
+              const page = i + 1;
+              // Hanya tampilkan halaman pertama, halaman saat ini, halaman terakhir, dan 1 halaman di kanan-kiri halaman saat ini
+              if (
+                page === 1 || 
+                page === totalPages || 
+                page === currentPage || 
+                page === currentPage - 1 || 
+                page === currentPage + 1
+              ) {
+                return (
+                  <PaginationItem key={page}>
+                    <PaginationLink
+                      onClick={() => changePage(page)}
+                      isActive={page === currentPage}
+                      className="cursor-pointer"
+                    >
+                      {page}
+                    </PaginationLink>
+                  </PaginationItem>
+                );
+              }
+              
+              // Tampilkan ellipsis untuk halaman yang dilewati
+              if (
+                (page === currentPage - 2 && currentPage > 3) || 
+                (page === currentPage + 2 && currentPage < totalPages - 2)
+              ) {
+                return (
+                  <PaginationItem key={page}>
+                    <PaginationEllipsis />
+                  </PaginationItem>
+                );
+              }
+              
+              return null;
+            })}
+            
+            <PaginationItem>
+              <PaginationNext
+                onClick={() => currentPage < totalPages && changePage(currentPage + 1)}
+                className={currentPage >= totalPages ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+              />
+            </PaginationItem>
+          </PaginationContent>
+        </Pagination>
+      )}
     </div>
   );
 } 
