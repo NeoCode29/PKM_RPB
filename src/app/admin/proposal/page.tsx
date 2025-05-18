@@ -25,7 +25,7 @@ import { ProposalDialog } from "@/components/proposal/proposal-dialog";
 import { DeleteConfirmation } from "@/components/proposal/delete-confirmation";
 import { ImportDialog } from "@/components/proposal/import-dialog";
 import { useProposals } from "@/hooks/use-proposals";
-import { Pagination } from "@/components/ui/pagination";
+import { DataTablePagination } from '@/components/ui/data-table-pagination';
 
 export default function ProposalPage() {
   const router = useRouter();
@@ -219,7 +219,7 @@ export default function ProposalPage() {
           )}
         </CardContent>
         <CardFooter className="flex justify-between flex-col md:flex-row">
-          <Pagination 
+          <DataTablePagination
             currentPage={pagination.page} 
             totalPages={pagination.totalPages}
             totalItems={pagination.count}
