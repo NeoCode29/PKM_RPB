@@ -49,12 +49,12 @@ export function BidangProposalContent({ userId, bidangId }: BidangProposalConten
       if (!userId || isNaN(bidangId)) return;
 
       try {
-        const data = await ProposalService.getProposalsByBidangAndReviewer(
+        const result = await ProposalService.getProposalsByBidangAndReviewer(
           userId,
           bidangId
         );
-        setProposals(data);
-        setFilteredProposals(data);
+        setProposals(result.data);
+        setFilteredProposals(result.data);
         setError(null);
       } catch (error) {
         console.error('Error fetching proposals:', error);
