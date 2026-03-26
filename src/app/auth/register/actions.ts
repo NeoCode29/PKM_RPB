@@ -63,26 +63,8 @@ export async function registerUser(data: {
     // Cek apakah perlu konfirmasi email
     const needsEmailConfirmation = !authData.user?.email_confirmed_at;
 
-    // Jika berhasil, tambahkan data ke tabel users
-    const { error: dbError } = await supabase.from('users').insert({
-      id: authData.user?.id,
-      username: validatedData.username,
-      email: validatedData.email,
-      role: 'reviewer',
-      created_at: new Date().toISOString(),
-    });
-
-    // Jika terjadi error pada insert data
-    if (dbError) {
-      // Jika gagal, hapus user yang sudah diregistrasi di auth
-      // (Opsional: Anda bisa skip langkah ini jika menggunakan RLS atau triggers)
-      await supabase.auth.admin.deleteUser(authData.user!.id);
-      
-      return {
-        success: false,
-        error: dbError.message,
-      };
-    }
+    // Profil user di tabel public.users akan otomatis dibuat
+    // oleh database trigger (handle_new_user) saat auth.users di-insert
 
     // Registrasi berhasil
     return {
