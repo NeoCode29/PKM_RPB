@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useToast } from '@/components/ui/use-toast';
 import { PenilaianSubstansiService, DetailPenilaianSubstansiInput, PenilaianSubstansiLengkap } from '@/services/penilaian-substansi-service';
 import { KriteriaSubstansiService, KriteriaSubstansi } from '@/services/kriteria-substansi-service';
@@ -27,14 +27,14 @@ export function usePenilaianSubstansi({ proposalId, bidangId, userId }: UsePenil
   const { toast } = useToast();
 
   // Fungsi untuk mengambil kriteria dan penilaian yang ada
-  const fetchPenilaian = async () => {
+  const fetchPenilaian = useCallback(async () => {
     try {
       setIsLoading(true);
       setError(null);
 
       // Ambil kriteria substansi berdasarkan bidang
       const kriteriaList = await KriteriaSubstansiService.getByBidangPkm(bidangId);
-      
+
       // Ambil penilaian yang sudah ada (jika ada)
       const existingData = await PenilaianSubstansiService.getPenilaianByReviewerAndProposal(
         userId,
@@ -76,11 +76,11 @@ export function usePenilaianSubstansi({ proposalId, bidangId, userId }: UsePenil
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [proposalId, bidangId, userId, toast]);
 
   useEffect(() => {
     fetchPenilaian();
-  }, [proposalId, bidangId, userId]);
+  }, [fetchPenilaian]);
 
   // Fungsi untuk menghitung nilai berdasarkan skor dan bobot
   const calculateNilai = (skor: number, bobot: number) => {

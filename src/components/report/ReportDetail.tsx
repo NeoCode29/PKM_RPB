@@ -40,13 +40,11 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { ProposalService, ProposalWithRelations } from '@/services/proposal-service';
 import { 
   PenilaianAdministrasiService, 
-  DetailPenilaianAdministrasi,
-  PenilaianAdministrasi
+  DetailPenilaianAdministrasi
 } from '@/services/penilaian-administrasi-service';
 import {
   PenilaianSubstansiService,
-  DetailPenilaianSubstansi,
-  PenilaianSubstansi
+  DetailPenilaianSubstansi
 } from '@/services/penilaian-substansi-service';
 import { toast } from '@/components/ui/use-toast';
 import jsPDF from 'jspdf';
@@ -54,45 +52,6 @@ import autoTable, { PageHook } from 'jspdf-autotable';
 import { KriteriaAdministrasi } from '@/services/kriteria-administrasi-service';
 import { KriteriaSubstansi } from '@/services/kriteria-substansi-service';
 
-// Interface for autoTable didDrawPage parameter
-interface HookData {
-  pageNumber: number;
-  pageCount: number;
-  pageSize: {
-    width: number;
-    height: number;
-  };
-  finalY: number;
-  cursor: {
-    y: number;
-  };
-  settings: {
-    margin: {
-      left: number;
-    };
-  };
-  doc: jsPDF;
-}
-
-// Interface for didParseCell column
-interface HookData {
-  pageNumber: number;
-  pageCount: number;
-  pageSize: {
-    width: number;
-    height: number;
-  };
-  finalY: number;
-  cursor: {
-    y: number;
-  };
-  settings: {
-    margin: {
-      left: number;
-    };
-  };
-  doc: jsPDF;
-}
 
 // These interfaces extend the base interfaces to add catatan property
 interface ExtendedDetailPenilaianAdministrasi extends DetailPenilaianAdministrasi {
@@ -149,7 +108,6 @@ export default function ReportDetail({ proposalId }: ReportDetailProps) {
         // Untuk mengumpulkan semua data penilaian administrasi dari semua reviewer
         const allAdminByKriteria = new Map<number, ExtendedDetailPenilaianAdministrasi[]>();
         let totalKesalahan = 0;
-        let adminResultCount = 0;
         
         if (proposalData.reviewers && proposalData.reviewers.length > 0) {
           for (const reviewer of proposalData.reviewers) {
@@ -161,7 +119,7 @@ export default function ReportDetail({ proposalId }: ReportDetailProps) {
                 );
                 
                 if (penilaianResult && penilaianResult.details.length > 0) {
-                  adminResultCount++;
+                  // adminResultCount tracked by loop
                   
                   // Kumpulkan semua detail penilaian per id_kriteria
                   penilaianResult.details.forEach(detail => {
@@ -190,7 +148,7 @@ export default function ReportDetail({ proposalId }: ReportDetailProps) {
         // Konsolidasikan hasil penilaian administrasi - ambil yang kesalahan=true jika ada
         const consolidatedAdminDetails: ExtendedDetailPenilaianAdministrasi[] = [];
         
-        for (const [id_kriteria, details] of allAdminByKriteria.entries()) {
+        for (const [, details] of allAdminByKriteria.entries()) {
           // Cek apakah ada yang kesalahan=true
           const hasError = details.some(detail => detail.kesalahan === true);
           
@@ -439,7 +397,7 @@ export default function ReportDetail({ proposalId }: ReportDetailProps) {
           },
           margin: { left: 14, right: 14 },
           tableWidth: 'auto',
-          didDrawPage: function(data) {
+          didDrawPage: function() {
             // Tidak perlu tambahkan header di halaman baru
           } as PageHook
         });
@@ -540,7 +498,7 @@ export default function ReportDetail({ proposalId }: ReportDetailProps) {
           },
           margin: { left: 14, right: 14 },
           tableWidth: 'auto',
-          didDrawPage: function(data) {
+          didDrawPage: function() {
             // Tidak perlu tambahkan header di halaman baru
           } as PageHook
         });
@@ -554,6 +512,7 @@ export default function ReportDetail({ proposalId }: ReportDetailProps) {
         });
         
         if (uniqueSubstansiCatatan.size > 0) {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           let finalY = (doc as any).lastAutoTable?.finalY + 10 || startY + 20;
           
           doc.setFontSize(11);
@@ -607,7 +566,7 @@ export default function ReportDetail({ proposalId }: ReportDetailProps) {
     }
   };
 
-  const getStatusColor = (status: string | null) => {
+  const _getStatusColor = (status: string | null) => {
     switch (status) {
       case 'Diterima':
         return 'bg-green-100 text-green-800';

@@ -20,11 +20,12 @@ export function ReviewerSummaryCards({ userId }: ReviewerSummaryCardsProps) {
   useEffect(() => {
     if (!isLoading && proposals && stats) {
       // Hitung statistik
-      const reviewedCount = proposals.filter(p => 
-        (p as any).isReviewed === true || 
-        (p as any).review_status === 'reviewed' || 
-        (p as any).status_penilaian === 'reviewed'
-      ).length;
+      const reviewedCount = proposals.filter(p => {
+        const pd = p as unknown as { isReviewed?: boolean; review_status?: string; status_penilaian?: string };
+        return pd.isReviewed === true ||
+          pd.review_status === 'reviewed' ||
+          pd.status_penilaian === 'reviewed';
+      }).length;
       
       const totalCount = stats.totalProposals || 0; // Total semua proposal dalam sistem
       const assignedCount = stats.assignedProposals || 0; // Jumlah proposal yang ditugaskan ke reviewer ini

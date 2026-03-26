@@ -17,11 +17,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Textarea } from '@/components/ui/textarea';
-import { 
-  Save, 
-  ClipboardCheck, 
-  Loader2 
-} from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Separator } from '@/components/ui/separator';
 
@@ -47,11 +43,6 @@ export function PenilaianAdministrasiForm({ proposalId, bidangId, userId }: Peni
     handleCatatanChange,
     refreshPenilaian
   } = usePenilaianAdministrasi(userId, proposalId);
-  
-  const [penilaianItemsState, setPenilaianItems] = useState<Array<{
-    id_kriteria: number;
-    kesalahan: boolean;
-  }>>([]);
   
   // Handle penilaian error
   useEffect(() => {
@@ -107,8 +98,6 @@ export function PenilaianAdministrasiForm({ proposalId, bidangId, userId }: Peni
     }
   };
 
-  const jumlahKesalahan = penilaianItems.filter(item => item.kesalahan).length;
-  
   if (loading) {
     return (
       <Card>

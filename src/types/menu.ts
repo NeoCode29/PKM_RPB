@@ -1,6 +1,4 @@
 // types/menu.ts
-import { LucideIcon } from "lucide-react";
-
 export type MenuItem = {
   title: string;
   icon: string;

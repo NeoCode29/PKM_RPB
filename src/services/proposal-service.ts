@@ -1,8 +1,6 @@
 import { supabaseClient } from '@/lib/supabase/client';
-import { supabaseServer } from '@/lib/supabase/server';
 import * as XLSX from 'xlsx';
 import Papa from 'papaparse';
-import { v4 as uuidv4 } from 'uuid';
 
 // Tipe data untuk bidang PKM
 export interface BidangPkm {
@@ -203,9 +201,10 @@ export const ProposalService = {
       throw error;
     }
     
-    const transformedData = data.map((item: any) => {
+    const transformedData = data.map((item: Record<string, unknown>) => {
       // Transform data reviewer
-      const transformedReviewers = item.reviewer ? item.reviewer.map((r: any) => {
+      const reviewerList = item.reviewer as Record<string, unknown>[] | null;
+      const transformedReviewers = reviewerList ? reviewerList.map((r: Record<string, unknown>) => {
         return {
           id_reviewer: r.id_reviewer,
           id_proposal: r.id_proposal,
@@ -215,20 +214,21 @@ export const ProposalService = {
         };
       }) : [];
       
+      const detailPendanaan = item.detail_pendanaan as Record<string, unknown>[] | null;
       return {
         ...item,
         mahasiswa: item.mahasiswa,
         dosen: item.dosen,
         bidang_pkm: item.bidang_pkm,
         reviewers: transformedReviewers,
-        detail_pendanaan: item.detail_pendanaan && item.detail_pendanaan.length > 0 
-          ? item.detail_pendanaan[0] 
+        detail_pendanaan: detailPendanaan && detailPendanaan.length > 0
+          ? detailPendanaan[0]
           : null
       };
     });
-    
+
     return {
-      data: transformedData,
+      data: transformedData as unknown as ProposalWithRelations[],
       count: count || 0,
       page,
       pageSize,
@@ -266,7 +266,8 @@ export const ProposalService = {
     if (!data) return null;
     
     // Transform data reviewer untuk memperbaiki struktur
-    const transformedReviewers = data.reviewer ? data.reviewer.map((r: any) => {
+    const reviewerData = data.reviewer as Record<string, unknown>[] | null;
+    const transformedReviewers = reviewerData ? reviewerData.map((r: Record<string, unknown>) => {
       return {
         id_reviewer: r.id_reviewer,
         id_proposal: r.id_proposal,
@@ -450,7 +451,7 @@ export const ProposalService = {
         (input.nama_mahasiswa || input.nim || input.program_studi || 
          input.jurusan || input.nomer_hp_mahasiswa || input.email_mahasiswa)) {
       
-      const mahasiswaUpdateData: any = {};
+      const mahasiswaUpdateData: Record<string, string> = {};
       if (input.nama_mahasiswa) mahasiswaUpdateData.nama = input.nama_mahasiswa;
       if (input.nim) mahasiswaUpdateData.nim = input.nim;
       if (input.program_studi) mahasiswaUpdateData.program_studi = input.program_studi;
@@ -474,7 +475,7 @@ export const ProposalService = {
     if (existingProposal.id_dosen && 
         (input.nama_dosen || input.nidn || input.email_dosen || input.nomer_hp_dosen)) {
       
-      const dosenUpdateData: any = {};
+      const dosenUpdateData: Record<string, string> = {};
       if (input.nama_dosen) dosenUpdateData.nama = input.nama_dosen;
       if (input.nidn) dosenUpdateData.nidn = input.nidn;
       if (input.email_dosen) dosenUpdateData.email = input.email_dosen;
@@ -558,7 +559,7 @@ export const ProposalService = {
     // Update data proposal (judul, status, dll)
     if (input.judul || input.status_penilaian || input.jumlah_anggota || 
         input.url_file || input.id_bidang_pkm !== undefined) {
-      const proposalUpdateData: any = {};
+      const proposalUpdateData: Record<string, string | number> = {};
       
       if (input.judul) proposalUpdateData.judul = input.judul;
       if (input.status_penilaian) proposalUpdateData.status_penilaian = input.status_penilaian;
@@ -642,11 +643,11 @@ export const ProposalService = {
               });
           }
         }
-      } catch (err) {
+      } catch {
         // Handle error
       }
     }
-    
+
     // Handle reviewer2 update
     if (input.reviewer2_id !== undefined) {
       try {
@@ -698,11 +699,11 @@ export const ProposalService = {
               });
           }
         }
-      } catch (err) {
+      } catch {
         // Handle error
       }
     }
-    
+
     // Tunggu sebentar untuk memastikan semua operasi selesai
     await new Promise(resolve => setTimeout(resolve, 500));
     
@@ -797,24 +798,27 @@ export const ProposalService = {
     // Transform data untuk sesuai dengan format yang dibutuhkan
     const transformedData = data
       .filter(item => item.proposal) // Filter item yang tidak memiliki proposal
-      .map((item: any) => {
+      .map((item) => {
+        const proposalData = item.proposal as unknown as Record<string, unknown>;
+        const mahasiswa = proposalData.mahasiswa as Record<string, unknown> | null;
+        const bidangPkm = proposalData.bidang_pkm as Record<string, unknown> | null;
         return {
-          ...item.proposal,
-          id: item.proposal.id_proposal,
-          title: item.proposal.judul,
-          review_status: item.proposal.status_penilaian,
+          ...proposalData,
+          id: proposalData.id_proposal,
+          title: proposalData.judul,
+          review_status: proposalData.status_penilaian,
           submitter: {
-            name: item.proposal.mahasiswa?.nama,
-            nim: item.proposal.mahasiswa?.nim
+            name: mahasiswa?.nama,
+            nim: mahasiswa?.nim
           },
-          bidang: item.proposal.bidang_pkm?.nama,
+          bidang: bidangPkm?.nama,
           reviewers: [] // Kosong karena tidak dibutuhkan di dashboard reviewer
         };
       });
     
-    return transformedData;
+    return transformedData as unknown as ProposalWithRelations[];
   },
-  
+
   // Import proposal dari file spreadsheet
   async importFromSpreadsheet(file: File): Promise<number> {
     return new Promise((resolve, reject) => {
@@ -837,20 +841,19 @@ export const ProposalService = {
               skipEmptyLines: true,
               complete: async (results) => {
                 if (results.data && Array.isArray(results.data)) {
-                  for (const row of results.data as any[]) {
+                  for (const row of results.data as Record<string, unknown>[]) {
                     proposals.push(mapSpreadsheetRowToProposal(row));
                   }
                 }
                 
                 // Buat proposal dari data yang diimpor
-                const supabase = supabaseClient();
                 let successCount = 0;
-                
+
                 for (const proposal of proposals) {
                   try {
                     await this.create(proposal);
                     successCount++;
-                  } catch (error) {
+                  } catch {
                     // Handle error
                   }
                 }
@@ -868,7 +871,7 @@ export const ProposalService = {
             const worksheet = workbook.Sheets[sheetName];
             const data = XLSX.utils.sheet_to_json(worksheet);
             
-            for (const row of data as any[]) {
+            for (const row of data as Record<string, unknown>[]) {
               proposals.push(mapSpreadsheetRowToProposal(row));
             }
             
@@ -879,11 +882,11 @@ export const ProposalService = {
               try {
                 await this.create(proposal);
                 successCount++;
-              } catch (error) {
+              } catch {
                 // Handle error
               }
             }
-            
+
             resolve(successCount);
           }
         } catch (error) {
@@ -1045,24 +1048,24 @@ export const ProposalService = {
 };
 
 // Fungsi helper untuk memetakan baris spreadsheet ke struktur ProposalInput
-function mapSpreadsheetRowToProposal(row: any): ProposalInput {
+function mapSpreadsheetRowToProposal(row: Record<string, unknown>): ProposalInput {
   return {
-    judul: row.judul || '',
-    nama_mahasiswa: row.nama_mahasiswa || '',
-    nim: row.nim || '',
-    program_studi: row.program_studi || '',
-    jurusan: row.jurusan || '',
-    nomer_hp_mahasiswa: row.nomer_hp_mahasiswa || '',
-    email_mahasiswa: row.email_mahasiswa || '',
-    nama_dosen: row.nama_dosen || '',
-    nidn: row.nidn || '',
-    email_dosen: row.email_dosen || '',
-    nomer_hp_dosen: row.nomer_hp_dosen || '',
-    url_file: row.url_file || '',
-    jumlah_anggota: parseInt(row.jumlah_anggota) || 1,
-    id_bidang_pkm: parseInt(row.id_bidang_pkm) || 0,
-    dana_simbelmawa: parseFloat(row.dana_simbelmawa) || 0,
-    dana_perguruan_tinggi: parseFloat(row.dana_perguruan_tinggi) || 0,
-    dana_pihak_lain: parseFloat(row.dana_pihak_lain) || 0
+    judul: (row.judul as string) || '',
+    nama_mahasiswa: (row.nama_mahasiswa as string) || '',
+    nim: (row.nim as string) || '',
+    program_studi: (row.program_studi as string) || '',
+    jurusan: (row.jurusan as string) || '',
+    nomer_hp_mahasiswa: (row.nomer_hp_mahasiswa as string) || '',
+    email_mahasiswa: (row.email_mahasiswa as string) || '',
+    nama_dosen: (row.nama_dosen as string) || '',
+    nidn: (row.nidn as string) || '',
+    email_dosen: (row.email_dosen as string) || '',
+    nomer_hp_dosen: (row.nomer_hp_dosen as string) || '',
+    url_file: (row.url_file as string) || '',
+    jumlah_anggota: parseInt(row.jumlah_anggota as string) || 1,
+    id_bidang_pkm: parseInt(row.id_bidang_pkm as string) || 0,
+    dana_simbelmawa: parseFloat(row.dana_simbelmawa as string) || 0,
+    dana_perguruan_tinggi: parseFloat(row.dana_perguruan_tinggi as string) || 0,
+    dana_pihak_lain: parseFloat(row.dana_pihak_lain as string) || 0
   };
 } 

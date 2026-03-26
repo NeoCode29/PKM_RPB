@@ -7,35 +7,53 @@ import { ArrowRightIcon } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useRouter } from "next/navigation";
 
+interface ProposalReviewData {
+  id?: string;
+  id_proposal?: number;
+  title?: string;
+  judul?: string;
+  bidang?: string;
+  created_at?: string;
+  review_status?: string;
+  status_penilaian?: string;
+  submitter?: { name?: string };
+  mahasiswa?: { nama?: string };
+  bidang_pkm?: { nama?: string };
+}
+
 interface ProposalReviewItemProps {
-  proposal: ProposalWithRelations | any; // Menggunakan any untuk mengatasi perbedaan struktur data
+  proposal: ProposalWithRelations | ProposalReviewData;
 }
 
 export function ProposalReviewItem({ proposal }: ProposalReviewItemProps) {
   const router = useRouter();
 
   // Fungsi untuk memastikan properti yang tepat digunakan
-  const getProposalTitle = () => {
-    return proposal.title || proposal.judul || "Judul tidak tersedia";
+  const getProposalTitle = (): string => {
+    const p = proposal as ProposalReviewData;
+    return p.title || p.judul || "Judul tidak tersedia";
   };
 
-  const getSubmitterName = () => {
-    if (proposal.submitter?.name) {
-      return proposal.submitter.name;
+  const getSubmitterName = (): string => {
+    const p = proposal as ProposalReviewData;
+    if (p.submitter?.name) {
+      return p.submitter.name;
     }
-    return proposal.mahasiswa?.nama || "Nama tidak tersedia";
+    return p.mahasiswa?.nama || "Nama tidak tersedia";
   };
 
-  const getBidang = () => {
-    return proposal.bidang || proposal.bidang_pkm?.nama || "Bidang tidak tersedia";
+  const getBidang = (): string => {
+    const p = proposal as ProposalReviewData;
+    return p.bidang || p.bidang_pkm?.nama || "Bidang tidak tersedia";
   };
 
-  const getCreatedDate = () => {
+  const getCreatedDate = (): string => {
     return proposal.created_at || "Tanggal tidak tersedia";
   };
 
   const getReviewStatus = () => {
-    const status = proposal.review_status || proposal.status_penilaian;
+    const p = proposal as ProposalReviewData;
+    const status = p.review_status || p.status_penilaian;
     if (status === "reviewed") {
       return <Badge className="ml-2 bg-green-500">Sudah direview</Badge>;
     }
@@ -43,8 +61,8 @@ export function ProposalReviewItem({ proposal }: ProposalReviewItemProps) {
   };
 
   const handleReview = () => {
-    // Gunakan ID proposal yang sesuai, bergantung pada struktur data
-    const proposalId = proposal.id || proposal.id_proposal;
+    const p = proposal as ProposalReviewData;
+    const proposalId = p.id || p.id_proposal;
     router.push(`/reviewer/proposal/${proposalId}`);
   };
 
@@ -86,9 +104,9 @@ export function ProposalReviewItem({ proposal }: ProposalReviewItemProps) {
         <Button
           className="w-full"
           onClick={handleReview}
-          variant={(proposal.review_status === "reviewed" || proposal.status_penilaian === "reviewed") ? "outline" : "default"}
+          variant={((proposal as ProposalReviewData).review_status === "reviewed" || (proposal as ProposalReviewData).status_penilaian === "reviewed") ? "outline" : "default"}
         >
-          {(proposal.review_status === "reviewed" || proposal.status_penilaian === "reviewed") ? "Lihat Review" : "Review Proposal"}
+          {((proposal as ProposalReviewData).review_status === "reviewed" || (proposal as ProposalReviewData).status_penilaian === "reviewed") ? "Lihat Review" : "Review Proposal"}
           <ArrowRightIcon className="ml-2 h-4 w-4" />
         </Button>
       </CardFooter>

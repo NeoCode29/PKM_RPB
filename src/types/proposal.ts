@@ -20,7 +20,7 @@ export interface Proposal {
 export interface ProposalWithRelations extends Proposal {
   submitter?: User;
   reviewers?: User[];
-  review_result?: any;
+  review_result?: Record<string, unknown>;
 }
 
 export interface ProposalFilter {

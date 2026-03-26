@@ -67,7 +67,7 @@ export function PenilaianSubstansiDetailContent({
         title: 'Sukses',
         description: 'Penilaian berhasil disimpan',
       });
-    } catch (error) {
+    } catch {
       toast({
         title: 'Error',
         description: 'Gagal menyimpan penilaian',

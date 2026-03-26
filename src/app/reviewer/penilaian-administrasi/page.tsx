@@ -26,7 +26,7 @@ export default async function PenilaianAdministrasiPage() {
   
   try {
     userId = await getUserId();
-  } catch (error) {
+  } catch {
     redirect('/login');
   }
 

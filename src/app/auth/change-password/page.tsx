@@ -40,7 +40,7 @@ export default function ChangePasswordPage() {
         });
         setIsLoading(false);
       }
-    } catch (error) {
+    } catch {
       toast({
         title: "Terjadi kesalahan",
         description: "Gagal mengubah password, silakan coba lagi nanti.",

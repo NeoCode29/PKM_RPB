@@ -30,7 +30,7 @@ export const UserDetailDialog: React.FC<UserDetailDialogProps> = ({
   const formatDate = (dateString: string) => {
     try {
       return format(new Date(dateString), 'dd MMMM yyyy, HH:mm');
-    } catch (error) {
+    } catch {
       return dateString || '-';
     }
   };

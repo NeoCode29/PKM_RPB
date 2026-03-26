@@ -1,9 +1,8 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { ReviewerService, ReviewerStats } from '@/services/reviewer-service';
-import { ProposalWithRelations } from '@/services/proposal-service';
 import { useToast } from '@/components/ui/use-toast';
 import { ProposalService } from '@/services/proposal-service';
 import { ProposalWithRelations as ProposalWithRelationsType } from '@/types/proposal';
@@ -21,46 +20,47 @@ export const useReviewerDashboard = (reviewerId: string) => {
   const router = useRouter();
 
   // Mendapatkan ID reviewer dari prop atau localStorage
-  const getUserId = (): string | null => {
+  const getUserId = useCallback((): string | null => {
     if (reviewerId) {
       return reviewerId;
     }
-    
+
     if (typeof window !== 'undefined') {
       const localId = localStorage.getItem('userId') || sessionStorage.getItem('userId');
       return localId;
     }
-    
+
     return null;
-  };
+  }, [reviewerId]);
 
   // Fungsi untuk memuat data dashboard reviewer
-  const fetchDashboardData = async () => {
+  const fetchDashboardData = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
 
       const userId = getUserId();
-      
+
       if (!userId) {
         router.push('/auth/login');
         return;
       }
 
       const proposalsData = await ReviewerService.getAssignedProposals(userId);
-      
+
       const proposalsWithReviewStatus = proposalsData.map(proposal => ({
         ...proposal,
         isReviewed: proposal.status_penilaian === 'reviewed'
       }));
-      
-      setProposals(proposalsWithReviewStatus);
+
+      setProposals(proposalsWithReviewStatus as unknown as ProposalWithRelationsType[]);
 
       const statsData = await ReviewerService.getReviewerStats(userId);
       setStats(statsData);
 
-    } catch (err: any) {
-      setError(new Error(err.message || 'Gagal memuat data dashboard reviewer'));
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Gagal memuat data dashboard reviewer';
+      setError(new Error(message));
       toast({
         title: 'Error',
         description: 'Gagal memuat data dashboard reviewer. Silakan coba lagi.',
@@ -69,12 +69,12 @@ export const useReviewerDashboard = (reviewerId: string) => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [router, toast, getUserId]);
 
   // Memuat data saat komponen dimount atau reviewerId berubah
   useEffect(() => {
     fetchDashboardData();
-  }, [reviewerId]);
+  }, [fetchDashboardData]);
 
   const refreshProposals = async () => {
     setLoading(true);
@@ -89,18 +89,20 @@ export const useReviewerDashboard = (reviewerId: string) => {
       const reviewerProposals = await ProposalService.getProposalsByReviewerId(userId);
       
       const proposalsWithReviewStatus = reviewerProposals.map(proposal => {
-        const isReviewed = proposal.status_penilaian === 'reviewed' || 
-                         (proposal as any).review_status === 'reviewed';
-        
+        const proposalRecord = proposal as unknown as Record<string, unknown>;
+        const isReviewed = proposal.status_penilaian === 'reviewed' ||
+                         proposalRecord.review_status === 'reviewed';
+
         return {
           ...proposal,
           isReviewed
         };
       });
-      
+
       setProposals(proposalsWithReviewStatus as unknown as ProposalWithRelationsType[]);
-    } catch (err: any) {
-      setError(new Error(err.message || 'Gagal menyegarkan data proposal'));
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Gagal menyegarkan data proposal';
+      setError(new Error(message));
       toast({
         title: 'Error',
         description: 'Gagal menyegarkan data proposal. Silakan coba lagi.',

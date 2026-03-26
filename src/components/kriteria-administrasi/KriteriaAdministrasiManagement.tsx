@@ -11,7 +11,7 @@ import { KriteriaAdministrasi, KriteriaAdministrasiInput } from '@/services/krit
 import { useToast } from '@/components/ui/use-toast';
 
 export function KriteriaAdministrasiManagement() {
-  const { kriteria, loading, error, createKriteria, updateKriteria, deleteKriteria, refreshKriteria } = useKriteriaAdministrasi();
+  const { kriteria, loading, error, createKriteria, updateKriteria, deleteKriteria } = useKriteriaAdministrasi();
   const [selectedKriteria, setSelectedKriteria] = useState<KriteriaAdministrasi | null>(null);
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);

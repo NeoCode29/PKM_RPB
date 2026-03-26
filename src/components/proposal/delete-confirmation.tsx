@@ -34,7 +34,7 @@ export function DeleteConfirmation({
           <DialogTitle>Konfirmasi Hapus Proposal</DialogTitle>
           <DialogDescription>
             Anda yakin ingin menghapus proposal{' '}
-            <span className="font-semibold">"{proposal?.judul}"</span>?
+            <span className="font-semibold">&quot;{proposal?.judul}&quot;</span>?
           </DialogDescription>
         </DialogHeader>
         

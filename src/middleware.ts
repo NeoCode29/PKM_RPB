@@ -116,13 +116,13 @@ export async function middleware(request: NextRequest) {
         }
 
         if(path.startsWith('/admin') && data?.role !== 'admin'){
-          let redirectResponse = NextResponse.redirect(new URL('/forbidden', request.url));
+          const redirectResponse = NextResponse.redirect(new URL('/forbidden', request.url));
           redirectResponse.headers.set('pkm-user-role', data?.role || '');
           return redirectResponse;
         }
-        
+
         if(path.startsWith('/reviewer') && data?.role !== 'reviewer'){
-          let redirectResponse = NextResponse.redirect(new URL('/forbidden', request.url));
+          const redirectResponse = NextResponse.redirect(new URL('/forbidden', request.url));
           redirectResponse.headers.set('pkm-user-role', data?.role || '');
           return redirectResponse;
         }

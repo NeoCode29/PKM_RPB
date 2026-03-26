@@ -5,7 +5,6 @@ import { getUserId } from '@/lib/auth/get-user-id';
 import { redirect } from 'next/navigation';
 import { BackButton } from '@/components/reviewer/BackButton';
 import { BidangPkmService } from '@/services/bidang-pkm-service';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 // Loading state component
 function Loading() {
@@ -23,18 +22,6 @@ function Loading() {
         <Skeleton className="h-72 w-full" />
       </div>
     </div>
-  );
-}
-
-// Komponen untuk error state
-function ErrorState() {
-  return (
-    <Alert variant="destructive">
-      <AlertTitle>Error</AlertTitle>
-      <AlertDescription>
-        Terjadi kesalahan saat memuat data. Silakan coba lagi nanti.
-      </AlertDescription>
-    </Alert>
   );
 }
 

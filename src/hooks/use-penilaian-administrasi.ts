@@ -1,16 +1,24 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useToast } from '@/components/ui/use-toast';
-import { 
-  PenilaianAdministrasiService, 
-  PenilaianAdministrasiLengkap,
-  DetailPenilaianAdministrasi,
-  DetailPenilaianAdministrasiInput
+import {
+  PenilaianAdministrasiService,
+  PenilaianAdministrasiLengkap
 } from '@/services/penilaian-administrasi-service';
 import { KriteriaAdministrasi, KriteriaAdministrasiService } from '@/services/kriteria-administrasi-service';
-import { PenilaianAdministrasi, PenilaianAdministrasiInput } from '@/services/penilaian-administrasi-service';
+import { PenilaianAdministrasiInput } from '@/services/penilaian-administrasi-service';
 import { useRouter } from 'next/navigation';
-import { ProposalService, ProposalWithRelations } from '@/services/proposal-service';
-import { PenilaianSubstansiService } from '@/services/penilaian-substansi-service';
+import { ProposalService } from '@/services/proposal-service';
+import { PenilaianSubstansiService, PenilaianSubstansi } from '@/services/penilaian-substansi-service';
+import { PenilaianAdministrasi } from '@/services/penilaian-administrasi-service';
+
+interface ProposalWithPenilaian {
+  id_proposal: number;
+  judul: string;
+  ketua: string;
+  status_penilaian: boolean;
+  penilaian_administrasi: PenilaianAdministrasi | null;
+  penilaian_substansi: PenilaianSubstansi | null;
+}
 
 // Interface untuk item penilaian internal
 interface PenilaianItem {
@@ -59,11 +67,11 @@ export const usePenilaianBidang = (userId: string) => {
 
 // Hook untuk mendapatkan proposal dalam satu bidang PKM
 export function useBidangProposals(userId: string, bidangId: number) {
-  const [proposals, setProposals] = useState<ProposalWithRelations[]>([]);
+  const [proposals, setProposals] = useState<ProposalWithPenilaian[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
-  const [pageSize, setPageSize] = useState(10);
+  const [pageSize] = useState(10);
   const [totalCount, setTotalCount] = useState(0);
 
   const fetchProposals = useCallback(async (page = 1) => {
@@ -99,7 +107,7 @@ export function useBidangProposals(userId: string, bidangId: number) {
 
       // Ambil data penilaian administrasi untuk setiap proposal
       const proposalsWithPenilaian = await Promise.all(
-        result.data.map(async (proposal: any) => {
+        result.data.map(async (proposal) => {
           try {
             const penilaianAdm = await PenilaianAdministrasiService.getPenilaianByReviewerAndProposal(
               userId,

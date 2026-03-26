@@ -22,7 +22,7 @@ export const useKriteriaSubstansi = (bidangPkmId: number | null) => {
       const data = await KriteriaSubstansiService.getByBidangPkm(bidangPkmId);
       setKriteria(data);
       setError(null);
-    } catch (err) {
+    } catch (err: unknown) {
       setError(err instanceof Error ? err : new Error('Terjadi kesalahan saat mengambil data kriteria'));
     } finally {
       setLoading(false);
@@ -46,7 +46,7 @@ export const useKriteriaSubstansi = (bidangPkmId: number | null) => {
       });
       setKriteria(prev => [...prev, created]);
       return created;
-    } catch (err) {
+    } catch (err: unknown) {
       const error = err instanceof Error ? err : new Error('Terjadi kesalahan saat membuat kriteria');
       setError(error);
       throw error;
@@ -68,7 +68,7 @@ export const useKriteriaSubstansi = (bidangPkmId: number | null) => {
       });
       setKriteria(prev => prev.map(item => item.id_kriteria === id ? updated : item));
       return updated;
-    } catch (err) {
+    } catch (err: unknown) {
       const error = err instanceof Error ? err : new Error('Terjadi kesalahan saat memperbarui kriteria');
       setError(error);
       throw error;
@@ -82,7 +82,7 @@ export const useKriteriaSubstansi = (bidangPkmId: number | null) => {
       setLoading(true);
       await KriteriaSubstansiService.delete(id);
       setKriteria(prev => prev.filter(item => item.id_kriteria !== id));
-    } catch (err) {
+    } catch (err: unknown) {
       const error = err instanceof Error ? err : new Error('Terjadi kesalahan saat menghapus kriteria');
       setError(error);
       throw error;
@@ -118,7 +118,7 @@ export const useKriteriaSubstansiDetail = (id: number | null) => {
       const data = await KriteriaSubstansiService.getById(id);
       setKriteriaDetail(data);
       setError(null);
-    } catch (err) {
+    } catch (err: unknown) {
       setError(err instanceof Error ? err : new Error('Terjadi kesalahan saat mengambil detail kriteria'));
     } finally {
       setLoading(false);

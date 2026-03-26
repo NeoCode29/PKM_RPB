@@ -5,7 +5,7 @@ import ReportDetail from '@/components/report/ReportDetail';
 
 
 
-export default async function ReportPage({ params }: {params: any}) {
+export default async function ReportPage({ params }: {params: Promise<{ id: string }>}) {
   const paramsStore = await params;
   const id = parseInt(paramsStore.id);
   

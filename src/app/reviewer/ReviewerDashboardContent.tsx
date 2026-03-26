@@ -39,7 +39,7 @@ export default function ReviewerDashboardContent({ userId }: ReviewerDashboardCo
         let completedSubs = 0;
         
         // Periksa setiap proposal untuk status penilaian
-        for (const proposal of proposalsData) {
+        for (const proposal of proposalsData as Array<{id_proposal?: number}>) {
           if (!proposal.id_proposal) continue;
           
           // Cek penilaian administrasi

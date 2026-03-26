@@ -15,7 +15,7 @@ interface ProposalData {
   status_penilaian?: string;
   review_status?: string;
   isReviewed?: boolean;
-  [key: string]: any;
+  [key: string]: string | number | boolean | undefined;
 }
 
 interface DashboardContentProps {

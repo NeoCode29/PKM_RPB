@@ -27,7 +27,7 @@ export const UsersTable: React.FC<UsersTableProps> = ({
   const formatDate = (dateString: string) => {
     try {
       return format(new Date(dateString), 'dd/MM/yyyy');
-    } catch (error) {
+    } catch {
       return dateString || '-';
     }
   };

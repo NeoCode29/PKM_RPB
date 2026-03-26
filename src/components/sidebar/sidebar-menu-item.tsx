@@ -4,10 +4,9 @@ import { MenuItem } from "@/types/menu";
 import { SidebarMenuItem as UISidebarMenuItem, SidebarMenuButton } from "@/components/ui/sidebar";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
-import { 
-  ChevronRight, 
-  LayoutDashboard, 
-  Users, 
+import {
+  LayoutDashboard,
+  Users,
   FileText, 
   ClipboardCheck, 
   ClipboardList, 

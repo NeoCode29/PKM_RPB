@@ -1,8 +1,8 @@
 "use client"
 
 import { useState } from "react";
-import { 
-  ProposalWithRelations 
+import {
+  ProposalWithRelations
 } from "@/services/proposal-service";
 import {
   Table,
@@ -13,16 +13,10 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { 
-  Edit, 
-  Trash2, 
-  Eye, 
-  FileText, 
-  Download, 
-  Copy,
-  CheckCircle,
-  XCircle,
-  Clock
+import {
+  Edit,
+  Trash2,
+  Eye
 } from "lucide-react";
 import {
   Tooltip,
@@ -30,15 +24,6 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { Badge } from "@/components/ui/badge";
-import { formatDistanceToNow } from "date-fns";
-import { id } from "date-fns/locale";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 
 interface ProposalTableProps {
   data: ProposalWithRelations[];
@@ -50,42 +35,16 @@ interface ProposalTableProps {
   totalCount?: number;
 }
 
-// Status mapping untuk badge
-const statusVariant: Record<string, "default" | "secondary" | "destructive" | "outline" | "success" | "warning"> = {
-  'Belum Dinilai': 'secondary',
-  'Sedang Ditinjau': 'warning',
-  'Diterima': 'success',
-  'Ditolak': 'destructive'
-};
-
-// Icon mapping untuk status
-const StatusIcon = ({status}: {status: string | null}) => {
-  if (!status) return null;
-  
-  switch(status) {
-    case 'Belum Dinilai':
-      return <Clock className="mr-2 h-4 w-4" />;
-    case 'Sedang Ditinjau':
-      return <Eye className="mr-2 h-4 w-4" />;
-    case 'Diterima':
-      return <CheckCircle className="mr-2 h-4 w-4" />;
-    case 'Ditolak':
-      return <XCircle className="mr-2 h-4 w-4" />;
-    default:
-      return null;
-  }
-};
-
-export function ProposalTable({ 
-  data, 
-  onEdit, 
-  onDelete, 
-  onView, 
-  onExport,
+export function ProposalTable({
+  data,
+  onEdit,
+  onDelete,
+  onView,
+  onExport: _onExport,
   isLoading = false,
-  totalCount
+  totalCount: _totalCount
 }: ProposalTableProps) {
-  const [hoveredRow, setHoveredRow] = useState<number | null>(null);
+  const [_hoveredRow, setHoveredRow] = useState<number | null>(null);
 
   return (
     <div className="rounded-md border overflow-hidden">

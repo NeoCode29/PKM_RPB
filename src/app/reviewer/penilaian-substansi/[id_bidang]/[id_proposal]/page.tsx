@@ -8,25 +8,6 @@ import { PenilaianSubstansiClientForm } from '@/components/reviewer/PenilaianSub
 import { getUserId } from '@/lib/auth/get-user-id';
 import { redirect } from 'next/navigation';
 
-// Komponen untuk loading state
-function Loading() {
-  return (
-    <div className="space-y-6">
-      <div className="flex items-center gap-4">
-        <Skeleton className="h-10 w-24" />
-        <div>
-          <Skeleton className="h-8 w-64 mb-2" />
-          <Skeleton className="h-4 w-32" />
-        </div>
-      </div>
-      
-      <div className="rounded-md border p-4">
-        <Skeleton className="h-[600px] w-full" />
-      </div>
-    </div>
-  );
-}
-
 // Komponen untuk mendapatkan proposal detail
 async function getProposalDetail(proposalId: number) {
   try {
@@ -52,14 +33,14 @@ function ErrorState() {
 export default async function PenilaianSubstansiPage({ 
   params 
 }: { 
-  params: any
+  params: Promise<{ id_bidang: string; id_proposal: string }>
 }) {
   const paramsStore = await params;
   let userId: string;
   
   try {
     userId = await getUserId();
-  } catch (error) {
+  } catch {
     redirect('/login');
   }
   

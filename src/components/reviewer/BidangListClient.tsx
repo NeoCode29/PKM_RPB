@@ -13,7 +13,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { usePenilaianBidang } from '@/hooks/use-penilaian-administrasi';
 import { useToast } from '@/components/ui/use-toast';
-import { Folder, FileText, ArrowRight, Loader2 } from 'lucide-react';
+import { FileText, ArrowRight } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 
 interface BidangListClientProps {
@@ -25,7 +25,7 @@ export function BidangListClient({ userId }: BidangListClientProps) {
   const { toast } = useToast();
   
   // Use the userId prop directly with the hook
-  const { bidangList, loading, error, refreshBidangList } = usePenilaianBidang(userId);
+  const { bidangList, loading, error } = usePenilaianBidang(userId);
   
   useEffect(() => {
     if (error) {

@@ -17,9 +17,14 @@ import { Badge } from '@/components/ui/badge';
 import { FileText, ExternalLink, User, Building, DollarSign } from 'lucide-react';
 import { format } from 'date-fns';
 import { id } from 'date-fns/locale';
+import { ProposalWithRelations } from '@/services/proposal-service';
+
+interface ProposalDetailData extends ProposalWithRelations {
+  penilaian_substansi?: { status?: boolean | null };
+}
 
 interface ProposalDetailCardProps {
-  proposal: any;
+  proposal: ProposalDetailData;
   showBasicInfoOnly?: boolean;
   showDetailOnly?: boolean;
 }
@@ -27,7 +32,7 @@ interface ProposalDetailCardProps {
 export function ProposalDetailCard({ proposal, showBasicInfoOnly = false, showDetailOnly = false }: ProposalDetailCardProps) {
   if (!proposal) return null;
 
-  const getStatusColor = (status: string | null | boolean) => {
+  const getStatusColor = (status: string | null | boolean | undefined) => {
     if (status === true) {
       return 'bg-green-100 text-green-800';
     } else if (status === false) {

@@ -15,9 +15,8 @@ import {
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
-import { 
-  ArrowLeft, 
-  Eye, 
+import {
+  Eye,
   Search,
   Filter,
   FileText,
@@ -34,8 +33,6 @@ import {
   SelectTrigger, 
   SelectValue 
 } from '@/components/ui/select';
-import { format } from 'date-fns';
-import { id } from 'date-fns/locale';
 import { Card, CardDescription, CardFooter, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { ProposalWithRelations } from '@/services/proposal-service';
@@ -70,10 +67,9 @@ export function ProposalListClient({ bidangId, userId }: ProposalListClientProps
   
   // Gunakan hook dengan userId dari props
   const { 
-    proposals, 
-    loading: proposalsLoading, 
-    error, 
-    refreshProposals,
+    proposals,
+    loading: proposalsLoading,
+    error,
     currentPage,
     totalPages,
     changePage
@@ -90,7 +86,7 @@ export function ProposalListClient({ bidangId, userId }: ProposalListClientProps
   useEffect(() => {
     if (!proposals) return;
     
-    let filtered = [...proposals] as ExtendedProposal[];
+    let filtered = [...proposals] as unknown as ExtendedProposal[];
     
     // Apply search filter
     if (searchQuery) {

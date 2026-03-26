@@ -10,7 +10,7 @@ export async function getUserId(): Promise<string> {
     }
     
     return userId;
-  } catch (error) {
+  } catch {
     throw new Error('Gagal mendapatkan ID pengguna');
   }
 } 

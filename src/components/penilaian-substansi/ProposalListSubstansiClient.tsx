@@ -15,9 +15,8 @@ import {
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
-import { 
-  ArrowLeft, 
-  Eye, 
+import {
+  Eye,
   Search,
   Filter,
   FileText,
@@ -33,8 +32,6 @@ import {
   SelectTrigger, 
   SelectValue 
 } from '@/components/ui/select';
-import { format } from 'date-fns';
-import { id } from 'date-fns/locale';
 import { Card, CardDescription, CardFooter, CardTitle } from '@/components/ui/card';
 import { ProposalWithRelations } from '@/services/proposal-service';
 import {
@@ -68,10 +65,9 @@ export function ProposalListSubstansiClient({ bidangId, userId }: ProposalListSu
   
   // Gunakan hook dengan userId dari props
   const { 
-    proposals, 
-    loading: proposalsLoading, 
-    error, 
-    refreshProposals,
+    proposals,
+    loading: proposalsLoading,
+    error,
     currentPage,
     totalPages,
     changePage 
@@ -83,17 +79,12 @@ export function ProposalListSubstansiClient({ bidangId, userId }: ProposalListSu
   const [filteredProposals, setFilteredProposals] = useState<ExtendedProposal[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
-  const [bidangName, setBidangName] = useState('');
-  
+
   // Setup filter
   useEffect(() => {
     if (!proposals) return;
-    
-    if (proposals.length > 0 && proposals[0].bidang_pkm?.nama) {
-      setBidangName(proposals[0].bidang_pkm.nama);
-    }
-    
-    let filtered = [...proposals] as ExtendedProposal[];
+
+    let filtered = [...proposals] as unknown as ExtendedProposal[];
     
     // Apply search filter
     if (searchQuery) {
@@ -152,26 +143,6 @@ export function ProposalListSubstansiClient({ bidangId, userId }: ProposalListSu
   // Fungsi untuk memastikan status penilaian dalam format yang benar
   const formatStatusPenilaian = (status: boolean | null | undefined): string => {
     return status ? 'Sudah Dinilai' : 'Belum Dinilai';
-  };
-  
-  // Fungsi untuk memformat tanggal dengan penanganan kesalahan
-  const formatSafeDate = (dateString: string | null | undefined) => {
-    if (!dateString) return '-';
-    
-    try {
-      // Coba parsing tanggal
-      const date = new Date(dateString);
-      
-      // Cek apakah tanggal valid
-      if (isNaN(date.getTime())) {
-        return '-';
-      }
-      
-      return format(date, 'dd MMMM yyyy', { locale: id });
-    } catch (error) {
-      console.error('Error formatting date:', error, dateString);
-      return '-';
-    }
   };
   
   // Tampilkan loading state

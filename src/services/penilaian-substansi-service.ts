@@ -247,16 +247,17 @@ export const PenilaianSubstansiService = {
       if (error) throw error;
       
       // Group dan hitung proposal per bidang
-      const bidangCounts = data.reduce((acc: any, curr: any) => {
-        const bidang = curr.proposal?.bidang_pkm;
+      const bidangCounts = data.reduce((acc: Array<{id_bidang_pkm: number, nama: string, count: number}>, curr: Record<string, unknown>) => {
+        const proposal = curr.proposal as Record<string, unknown> | null;
+        const bidang = proposal?.bidang_pkm as Record<string, unknown> | null;
         if (bidang) {
-          const existing = acc.find((b: any) => b.id_bidang_pkm === bidang.id_bidang_pkm);
+          const existing = acc.find((b) => b.id_bidang_pkm === (bidang.id_bidang_pkm as number));
           if (existing) {
             existing.count++;
           } else {
             acc.push({
-              id_bidang_pkm: bidang.id_bidang_pkm,
-              nama: bidang.nama,
+              id_bidang_pkm: bidang.id_bidang_pkm as number,
+              nama: bidang.nama as string,
               count: 1
             });
           }

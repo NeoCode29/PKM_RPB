@@ -6,11 +6,8 @@ import {
   ProposalWithRelations,
   ProposalInput,
   ProposalFilter,
-  Mahasiswa,
-  Dosen,
   User,
   BidangPkm,
-  PaginatedResult
 } from '@/services/proposal-service';
 import { useToast } from '@/components/ui/use-toast';
 
@@ -32,8 +29,6 @@ export const useProposals = (initialFilter: ProposalFilter = {}) => {
   });
   
   // Data untuk dropdown options
-  const [mahasiswaOptions, setMahasiswaOptions] = useState<Mahasiswa[]>([]);
-  const [dosenOptions, setDosenOptions] = useState<Dosen[]>([]);
   const [reviewerOptions, setReviewerOptions] = useState<User[]>([]);
   const [bidangOptions, setBidangOptions] = useState<BidangPkm[]>([]);
   const [loadingOptions, setLoadingOptions] = useState(true);

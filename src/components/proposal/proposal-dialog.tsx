@@ -42,9 +42,9 @@ import {
   ProposalInput, 
   User 
 } from "@/services/proposal-service";
-import { Loader2, UserCheck, UserCircle, Wallet, FileBox, Users } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 
 // Schema validasi untuk form proposal
@@ -108,7 +108,7 @@ export function ProposalDialog({
   const [activeTab, setActiveTab] = useState("proposal");
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [fileUrl, setFileUrl] = useState<string>("");
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [_selectedFile, setSelectedFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
   
   // Menggunakan isLoading dari props
@@ -839,7 +839,7 @@ export function ProposalDialog({
                 {mode === 'edit' && (
                   <div className="p-3 bg-muted rounded-lg text-sm">
                     <p className="text-muted-foreground">
-                      <strong>Catatan:</strong> Pilih "-- Tidak Ada --" untuk menghapus reviewer yang sudah ditugaskan.
+                      <strong>Catatan:</strong> Pilih &quot;-- Tidak Ada --&quot; untuk menghapus reviewer yang sudah ditugaskan.
                     </p>
                   </div>
                 )}

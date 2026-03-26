@@ -10,7 +10,7 @@ export interface ReviewerStats {
 // Service untuk reviewer
 export const ReviewerService = {
   // Mendapatkan semua proposal yang ditugaskan ke reviewer tertentu
-  async getAssignedProposals(userId?: string): Promise<any[]> {
+  async getAssignedProposals(userId?: string): Promise<Record<string, unknown>[]> {
     const supabase = supabaseClient();
     
     if (!userId && typeof window !== 'undefined') {
@@ -49,7 +49,7 @@ export const ReviewerService = {
     // Transform data untuk sesuai dengan format yang dibutuhkan
     const transformedData = data
       .filter(item => item.proposal) // Filter item yang tidak memiliki proposal (null)
-      .map((item: any) => {
+      .map((item) => {
         return {
           ...item.proposal,
           reviewers: [] // Kosong karena tidak dibutuhkan di dashboard reviewer
@@ -107,10 +107,11 @@ export const ReviewerService = {
     }
     
     // Hitung jumlah proposal yang belum dinilai
-    const unratedCount = unratedData.filter((item: any) => {
-      return item.proposal && 
-        (item.proposal.status_penilaian === 'Belum Dinilai' || 
-         item.proposal.status_penilaian === null);
+    const unratedCount = unratedData.filter((item) => {
+      const proposal = item.proposal as unknown as Record<string, unknown> | null;
+      return proposal &&
+        (proposal.status_penilaian === 'Belum Dinilai' ||
+         proposal.status_penilaian === null);
     }).length;
     
     return {

@@ -45,22 +45,6 @@ import { format } from 'date-fns';
 import { id } from 'date-fns/locale';
 
 // Definisi tipe data untuk hasil penilaian
-interface AdminData {
-  totalKesalahan: number;
-  details: DetailPenilaianAdministrasi[];
-}
-
-interface SubstansiData {
-  totalNilai: number;
-  details: DetailPenilaianSubstansi[];
-}
-
-interface ProposalDataItem {
-  proposal: ProposalWithRelations;
-  adminData: AdminData;
-  substansiData: SubstansiData;
-}
-
 // TypeScript type for detail
 interface DetailWithCatatan extends DetailPenilaianAdministrasi {
   catatan?: string;
@@ -73,7 +57,7 @@ interface DetailSubstansiWithCatatan extends DetailPenilaianSubstansi {
 export default function DownloadReportPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
-  const [generating, setGenerating] = useState(false);
+  const [generating, _setGenerating] = useState(false);
   const [processingZip, setProcessingZip] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [proposals, setProposals] = useState<ProposalWithRelations[]>([]);
@@ -111,334 +95,6 @@ export default function DownloadReportPage() {
     fetchData();
   }, []);
 
-  // Handle generate and download report
-  const handleGenerateReport = async () => {
-    try {
-      setGenerating(true);
-      setProgress(0);
-      setError(null);
-      
-      // Filter proposals by bidang if selected
-      let filteredProposals = [...proposals];
-      if (selectedBidang !== 'all') {
-        filteredProposals = proposals.filter(
-          p => p.bidang_pkm?.id_bidang_pkm === parseInt(selectedBidang)
-        );
-      }
-      
-      if (filteredProposals.length === 0) {
-        setError('Tidak ada proposal yang ditemukan untuk kriteria yang dipilih');
-        setGenerating(false);
-        return;
-      }
-      
-      // Indicate progress
-      setProgress(10);
-      
-      // Dapatkan semua data penilaian untuk proposal
-      const proposalData = await Promise.all(
-        filteredProposals.map(async (proposal) => {
-          setProgress(prev => Math.min(80, prev + (70 / filteredProposals.length)));
-          
-          let adminData: AdminData = { totalKesalahan: 0, details: [] };
-          let substansiData: SubstansiData = { totalNilai: 0, details: [] };
-          
-          // Jika proposal memiliki reviewer, ambil data penilaian
-          if (proposal.reviewers && proposal.reviewers.length > 0) {
-            // Untuk administrasi, ambil yang memiliki kesalahan terbanyak
-            let maxKesalahan = 0;
-            
-            for (const reviewer of proposal.reviewers) {
-              if (reviewer.id_user) {
-                try {
-                  const adminResult = await PenilaianAdministrasiService.getPenilaianByReviewerAndProposal(
-                    reviewer.id_user.toString(),
-                    proposal.id_proposal
-                  );
-                  
-                  if (adminResult && adminResult.details.length > 0) {
-                    const kesalahanCount = adminResult.details.filter(d => d.kesalahan).length;
-                    if (kesalahanCount > maxKesalahan) {
-                      maxKesalahan = kesalahanCount;
-                      adminData = {
-                        totalKesalahan: adminResult.penilaian.total_kesalahan || 0,
-                        details: adminResult.details
-                      };
-                    }
-                  }
-                  
-                  // Untuk substansi, ambil rata-rata
-                  const substansiResult = await PenilaianSubstansiService.getPenilaianByReviewerAndProposal(
-                    reviewer.id_user.toString(),
-                    proposal.id_proposal
-                  );
-                  
-                  if (substansiResult && substansiResult.details.length > 0) {
-                    if (substansiData.details.length === 0) {
-                      substansiData.details = substansiResult.details;
-                      substansiData.totalNilai = substansiResult.penilaian.total_nilai || 0;
-                    } else {
-                      // Untuk rata-rata nilai substansi
-                      substansiData.totalNilai = (substansiData.totalNilai + (substansiResult.penilaian.total_nilai || 0)) / 2;
-                    }
-                  }
-                } catch (err) {
-                  console.error(`Error fetching data for proposal ${proposal.id_proposal}:`, err);
-                }
-              }
-            }
-          }
-          
-          return {
-            proposal,
-            adminData,
-            substansiData
-          };
-        })
-      );
-      
-      // Generate PDF with jsPDF
-      setProgress(85);
-      
-      import('jspdf').then(({ default: jsPDF }) => {
-        import('jspdf-autotable').then(({ default: autoTable }) => {
-          const doc = new jsPDF();
-          
-          // Tambahkan judul laporan
-          doc.setFontSize(16);
-          doc.setFont("helvetica", "bold");
-          doc.text("Laporan Penilaian Proposal", 14, 15);
-          
-          // Sub judul
-          doc.setFontSize(12);
-          doc.setFont("helvetica", "normal");
-          const bidangText = selectedBidang === 'all' 
-            ? 'Semua Bidang' 
-            : bidangList.find(b => b.id_bidang_pkm === parseInt(selectedBidang))?.nama || 'Bidang';
-          doc.text(`Bidang: ${bidangText}`, 14, 22);
-          doc.text(`Jumlah Proposal: ${filteredProposals.length}`, 14, 28);
-          doc.text(`Tanggal: ${new Date().toLocaleDateString('id-ID')}`, 14, 34);
-          
-          // Tabel Ringkasan Proposal
-          doc.setFontSize(12);
-          doc.setFont("helvetica", "bold");
-          doc.text("Ringkasan Proposal", 14, 44);
-          
-          // Data untuk tabel ringkasan
-          const summaryData = proposalData.map((data, index) => [
-            index + 1,
-            data.proposal.id_proposal,
-            data.proposal.judul,
-            data.proposal.mahasiswa?.nama || '-',
-            data.proposal.bidang_pkm?.nama || '-',
-            data.adminData.totalKesalahan,
-            data.substansiData.totalNilai.toFixed(2)
-          ]);
-          
-          // Buat tabel ringkasan
-          autoTable(doc, {
-            startY: 48,
-            head: [['No', 'ID', 'Judul Proposal', 'Pengusul', 'Bidang', 'Kesalahan Adm.', 'Nilai Substansi']],
-            body: summaryData,
-            theme: 'grid',
-            headStyles: { fillColor: [66, 135, 245], textColor: 255 },
-            styles: { 
-              overflow: 'linebreak', 
-              cellWidth: 'wrap',
-              fontSize: 10,
-              cellPadding: 2
-            },
-            columnStyles: {
-              0: { cellWidth: 10, halign: 'center' },
-              1: { cellWidth: 15, halign: 'center' },
-              2: { cellWidth: 'auto' },
-              3: { cellWidth: 40 },
-              4: { cellWidth: 30 },
-              5: { cellWidth: 25, halign: 'center' },
-              6: { cellWidth: 25, halign: 'right', fontStyle: 'bold' }
-            },
-            margin: { left: 14, right: 14 },
-            tableWidth: 'auto'
-          });
-          
-          // Detail setiap proposal
-          proposalData.forEach((data, dataIndex) => {
-            // Buat halaman baru untuk setiap proposal
-            doc.addPage();
-            
-            const proposal = data.proposal;
-            
-            // Header proposal
-            doc.setFontSize(14);
-            doc.setFont("helvetica", "bold");
-            doc.text(`Detail Proposal #${dataIndex + 1}`, 14, 15);
-            
-            // Info proposal
-            doc.setFontSize(12);
-            doc.text(`${proposal.id_proposal} - ${proposal.judul}`, 14, 22);
-            doc.setFont("helvetica", "normal");
-            doc.setFontSize(10);
-            doc.text(`Bidang PKM: ${proposal.bidang_pkm?.nama || '-'}`, 14, 28);
-            doc.text(`Pengusul: ${proposal.mahasiswa?.nama || '-'}`, 14, 33);
-            doc.text(`Status: ${proposal.status_penilaian || 'Belum Dinilai'}`, 14, 38);
-            
-            // 1. Penilaian Administrasi
-            let startY = 48;
-            doc.setFontSize(12);
-            doc.setFont("helvetica", "bold");
-            doc.text("1. Penilaian Administrasi", 14, startY);
-            
-            if (data.adminData.details.length === 0) {
-              doc.setFontSize(10);
-              doc.setFont("helvetica", "italic");
-              doc.text("Belum ada penilaian administrasi untuk proposal ini", 14, startY + 5);
-              startY += 15;
-            } else {
-              doc.setFontSize(10);
-              doc.setFont("helvetica", "normal");
-              doc.text(`Total Kesalahan: ${data.adminData.totalKesalahan}`, 14, startY + 5);
-              
-              // Tabel Penilaian Administrasi
-              const adminTableData = data.adminData.details.map((item, index) => [
-                index + 1,
-                item.kriteria?.deskripsi || 'Kriteria tidak ditemukan',
-                item.kesalahan ? 'Tidak Sesuai' : 'Sesuai'
-              ]);
-              
-              autoTable(doc, {
-                startY: startY + 10,
-                head: [['No', 'Kriteria', 'Status']],
-                body: adminTableData,
-                theme: 'grid',
-                headStyles: { fillColor: [66, 135, 245], textColor: 255 },
-                margin: { left: 14, right: 14 },
-                styles: { 
-                  overflow: 'linebreak',
-                  cellWidth: 'wrap',
-                  fontSize: 10,
-                  cellPadding: 2
-                },
-                columnStyles: {
-                  0: { cellWidth: 10, halign: 'center' }, // No
-                  1: { cellWidth: 'auto' }, // Kriteria
-                  2: { cellWidth: 30, halign: 'center' } // Status
-                },
-                tableWidth: 'auto',
-                didDrawPage: function(data) {
-                  if (data.pageNumber > 1) {
-                    // Menghapus teks lanjutan
-                    // doc.setFontSize(12);
-                    // doc.setFont("helvetica", "bold");
-                    // doc.text("1. Penilaian Administrasi (lanjutan)", 14, 20);
-                    // doc.setFont("helvetica", "normal");
-                    // doc.setFontSize(10);
-                    // doc.text(`Proposal: ${proposal.judul}`, 14, 30);
-                  }
-                }
-              });
-            }
-            
-            // 2. Penilaian Substansi
-            startY = (doc as any).lastAutoTable ? (doc as any).lastAutoTable.finalY + 15 : startY + 15;
-            
-            doc.setFontSize(12);
-            doc.setFont("helvetica", "bold");
-            doc.text("2. Penilaian Substansi", 14, startY);
-            
-            if (data.substansiData.details.length === 0) {
-              doc.setFontSize(10);
-              doc.setFont("helvetica", "italic");
-              doc.text("Belum ada penilaian substansi untuk proposal ini", 14, startY + 5);
-            } else {
-              doc.setFontSize(10);
-              doc.setFont("helvetica", "normal");
-              doc.text(`Total Nilai: ${data.substansiData.totalNilai.toFixed(2)}`, 14, startY + 5);
-              
-              // Tabel Penilaian Substansi
-              const substansiTableData = data.substansiData.details.map((item, index) => [
-                index + 1,
-                item.kriteria?.deskripsi || 'Kriteria tidak ditemukan',
-                item.kriteria?.bobot || '-',
-                item.skor ? item.skor.toFixed(1) : '-',
-                (item.nilai || 0).toFixed(2)
-              ]);
-              
-              // Tambahkan baris total
-              substansiTableData.push(['', 'Total Nilai', '', '', data.substansiData.totalNilai.toFixed(2)]);
-              
-              autoTable(doc, {
-                startY: startY + 10,
-                head: [['No', 'Kriteria', 'Bobot', 'Skor', 'Nilai']],
-                body: substansiTableData,
-                theme: 'grid',
-                headStyles: { fillColor: [66, 135, 245], textColor: 255 },
-                margin: { left: 14, right: 14 },
-                styles: { 
-                  overflow: 'linebreak',
-                  cellWidth: 'wrap',
-                  fontSize: 10,
-                  cellPadding: 2,
-                  minCellHeight: 10
-                },
-                columnStyles: {
-                  0: { cellWidth: 10, halign: 'center' }, // No
-                  1: { cellWidth: 'auto' }, // Kriteria
-                  2: { cellWidth: 15, halign: 'center' }, // Bobot
-                  3: { cellWidth: 15, halign: 'center' }, // Skor
-                  4: { cellWidth: 15, halign: 'right', fontStyle: 'bold' } // Nilai
-                },
-                tableWidth: 'auto',
-                didDrawPage: function(data) {
-                  if (data.pageNumber > 1) {
-                    // Menghapus teks lanjutan
-                    // doc.setFontSize(12);
-                    // doc.setFont("helvetica", "bold");
-                    // doc.text("2. Penilaian Substansi (lanjutan)", 14, 20);
-                    // doc.setFont("helvetica", "normal");
-                    // doc.setFontSize(10);
-                    // doc.text(`Proposal: ${proposal.judul}`, 14, 30);
-                  }
-                }
-              });
-            }
-          });
-          
-          // Footer
-          const pageCount = doc.getNumberOfPages();
-          for (let i = 1; i <= pageCount; i++) {
-            doc.setPage(i);
-            doc.setFontSize(8);
-            doc.setFont("helvetica", "normal");
-            doc.text(`Laporan Penilaian Proposal - Halaman ${i} dari ${pageCount}`, 14, doc.internal.pageSize.height - 10);
-            doc.text(`Dicetak pada: ${new Date().toLocaleDateString('id-ID')} ${new Date().toLocaleTimeString('id-ID')}`, doc.internal.pageSize.width - 80, doc.internal.pageSize.height - 10);
-          }
-          
-          // Indicate progress completion
-          setProgress(100);
-          
-          // Filename
-          const bidangName = selectedBidang === 'all' 
-            ? 'Semua-Bidang' 
-            : bidangList.find(b => b.id_bidang_pkm === parseInt(selectedBidang))?.nama?.replace(/\s+/g, '-') || 'Bidang';
-          
-          const fileName = `Laporan-Penilaian-Proposal-${bidangName}-${new Date().toISOString().split('T')[0]}.pdf`;
-          
-          // Save the PDF file
-          doc.save(fileName);
-          
-          setTimeout(() => {
-            setGenerating(false);
-            setProgress(0);
-          }, 1000);
-        });
-      });
-    } catch (err) {
-      console.error('Error generating report:', err);
-      setError('Gagal membuat laporan. Silakan coba lagi nanti.');
-      setGenerating(false);
-    }
-  };
-
   // Handle generate individual PDF reports and zip them
   const handleGenerateZipReports = async () => {
     try {
@@ -471,7 +127,7 @@ export default function DownloadReportPage() {
       let completedCount = 0;
       
       // Create a promises array for all PDF creations
-      const pdfPromises = filteredProposals.map(async (proposal, index) => {
+      const pdfPromises = filteredProposals.map(async (proposal) => {
         try {
           // Fetch penilaian data for each proposal
           const adminDetails: DetailWithCatatan[] = [];
@@ -483,7 +139,6 @@ export default function DownloadReportPage() {
           if (proposal.reviewers && proposal.reviewers.length > 0) {
             // For administration evaluations
             const allAdminByKriteria = new Map<number, DetailWithCatatan[]>();
-            let adminResultCount = 0;
             
             for (const reviewer of proposal.reviewers) {
               if (reviewer.id_user) {
@@ -494,8 +149,6 @@ export default function DownloadReportPage() {
                   );
                   
                   if (penilaianResult && penilaianResult.details.length > 0) {
-                    adminResultCount++;
-                    
                     // Collect all evaluation details by id_kriteria
                     penilaianResult.details.forEach(detail => {
                       const id_kriteria = detail.id_kriteria || 0;
@@ -520,7 +173,7 @@ export default function DownloadReportPage() {
             }
             
             // Consolidate administration evaluation results
-            for (const [id_kriteria, details] of allAdminByKriteria.entries()) {
+            for (const [, details] of allAdminByKriteria.entries()) {
               // Check if any evaluation has kesalahan=true
               const hasError = details.some((detail: DetailWithCatatan) => detail.kesalahan === true);
               
@@ -588,7 +241,7 @@ export default function DownloadReportPage() {
             }
             
             // Consolidate substance evaluation results - calculate average values
-            for (const [id_kriteria, details] of allSubstansiByKriteria.entries()) {
+            for (const [, details] of allSubstansiByKriteria.entries()) {
               if (details.length > 0) {
                 // Calculate average score
                 const totalNilai = details.reduce((sum: number, detail: DetailSubstansiWithCatatan) => sum + (detail.nilai || 0), 0);
@@ -696,7 +349,7 @@ export default function DownloadReportPage() {
           });
           
           // 1. Penilaian Administrasi
-          let startY = (doc as any).lastAutoTable?.finalY + 15 || 150;
+          let startY = (doc as unknown as Record<string, Record<string, number>>).lastAutoTable?.finalY + 15 || 150;
           doc.setFontSize(14);
           doc.setFont("helvetica", "bold");
           doc.text("1. Penilaian Administrasi", 14, startY);
@@ -737,7 +390,7 @@ export default function DownloadReportPage() {
               },
               margin: { left: 14, right: 14 },
               tableWidth: 'auto',
-              didDrawPage: function(data) {
+              didDrawPage: function(data: { pageNumber: number }) {
                 // Header di halaman baru
                 if (data.pageNumber > 1) {
                   // Menghapus teks lanjutan
@@ -760,7 +413,7 @@ export default function DownloadReportPage() {
             });
             
             if (uniqueAdminCatatan.size > 0) {
-              let finalY = (doc as any).lastAutoTable?.finalY + 10 || startY + 20;
+              let finalY = (doc as unknown as Record<string, Record<string, number>>).lastAutoTable?.finalY + 10 || startY + 20;
               doc.setFontSize(11);
               doc.setFont("helvetica", "bold");
               doc.text("Catatan Penilaian Administrasi:", 14, finalY);
@@ -781,7 +434,7 @@ export default function DownloadReportPage() {
               // Sesuaikan posisi Y untuk teks berikutnya
               startY = yOffset + 10;
             } else {
-              startY = (doc as any).lastAutoTable?.finalY + 15 || startY + 20;
+              startY = (doc as unknown as Record<string, Record<string, number>>).lastAutoTable?.finalY + 15 || startY + 20;
             }
           }
           
@@ -844,7 +497,7 @@ export default function DownloadReportPage() {
               },
               margin: { left: 14, right: 14 },
               tableWidth: 'auto',
-              didDrawPage: function(data) {
+              didDrawPage: function(data: { pageNumber: number }) {
                 // Header di halaman baru
                 if (data.pageNumber > 1) {
                   // Menghapus teks lanjutan
@@ -867,8 +520,8 @@ export default function DownloadReportPage() {
             });
             
             if (uniqueSubstansiCatatan.size > 0) {
-              let finalY = (doc as any).lastAutoTable?.finalY + 10 || startY + 20;
-              
+              let finalY = (doc as unknown as Record<string, Record<string, number>>).lastAutoTable?.finalY + 10 || startY + 20;
+
               doc.setFontSize(11);
               doc.setFont("helvetica", "bold");
               doc.text("Catatan Penilaian Substansi:", 14, finalY);

@@ -9,15 +9,11 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { ProposalDialog } from "@/components/proposal/proposal-dialog";
 import { DeleteConfirmation } from "@/components/proposal/delete-confirmation";
-import { 
-  ArrowLeft, 
-  Loader2, 
-  Edit, 
-  Trash2, 
-  Clock, 
-  CheckCircle, 
-  XCircle, 
-  Eye,
+import {
+  ArrowLeft,
+  Loader2,
+  Edit,
+  Trash2,
   FileText,
   UserCircle,
   UserCheck,
@@ -27,37 +23,11 @@ import {
 import { format } from "date-fns";
 import { id } from "date-fns/locale";
 import { useToast } from "@/components/ui/use-toast";
-import { ProposalService } from "@/services/proposal-service";
+import { ProposalService, BidangPkm, User, Reviewer, ProposalInput } from "@/services/proposal-service";
 import { PenilaianAdministrasiService } from "@/services/penilaian-administrasi-service";
 import { PenilaianSubstansiService } from "@/services/penilaian-substansi-service";
 
-// Status mapping untuk badge
-const statusVariant: Record<string, "default" | "secondary" | "destructive" | "outline" | "success" | "warning"> = {
-  'Belum Dinilai': 'secondary',
-  'Sedang Ditinjau': 'warning',
-  'Diterima': 'success',
-  'Ditolak': 'destructive'
-};
-
-// Icon mapping untuk status
-const StatusIcon = ({status}: {status: string | null}) => {
-  if (!status) return null;
-  
-  switch(status) {
-    case 'Belum Dinilai':
-      return <Clock className="mr-2 h-4 w-4" />;
-    case 'Sedang Ditinjau':
-      return <Eye className="mr-2 h-4 w-4" />;
-    case 'Diterima':
-      return <CheckCircle className="mr-2 h-4 w-4" />;
-    case 'Ditolak':
-      return <XCircle className="mr-2 h-4 w-4" />;
-    default:
-      return null;
-  }
-};
-
-export default function ProposalDetailPage({ params }: { params: any }) {
+export default function ProposalDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter();
   const { toast } = useToast();
   
@@ -80,8 +50,8 @@ export default function ProposalDetailPage({ params }: { params: any }) {
   const [dialogMode, setDialogMode] = useState<'edit' | 'view'>('view');
   
   // State untuk opsi bidang dan reviewer
-  const [bidangOptions, setBidangOptions] = useState<any[]>([]);
-  const [reviewerOptions, setReviewerOptions] = useState<any[]>([]);
+  const [bidangOptions, setBidangOptions] = useState<BidangPkm[]>([]);
+  const [reviewerOptions, setReviewerOptions] = useState<User[]>([]);
   
   // State untuk status penilaian reviewer
   const [reviewerPenilaianStatus, setReviewerPenilaianStatus] = useState<{
@@ -192,7 +162,7 @@ export default function ProposalDetailPage({ params }: { params: any }) {
   };
   
   // Handler untuk save proposal
-  const handleSaveProposal = async (data: any, mode: 'add' | 'edit') => {
+  const handleSaveProposal = async (data: ProposalInput, mode: 'add' | 'edit') => {
     try {
       if (mode === 'edit' && proposal) {
         console.log("[PAGE] PROSES SIMPAN DIMULAI");
@@ -208,8 +178,8 @@ export default function ProposalDetailPage({ params }: { params: any }) {
         const updateValues = {
           ...data,
           // Pastikan nilai reviewer bukan string kosong untuk database
-          reviewer1_id: data.reviewer1_id === "" ? null : data.reviewer1_id,
-          reviewer2_id: data.reviewer2_id === "" ? null : data.reviewer2_id
+          reviewer1_id: data.reviewer1_id === "" ? undefined : data.reviewer1_id as string,
+          reviewer2_id: data.reviewer2_id === "" ? undefined : data.reviewer2_id as string
         };
         
         console.log("[PAGE] Nilai akhir yang akan diupdate:", updateValues);
@@ -257,7 +227,7 @@ export default function ProposalDetailPage({ params }: { params: any }) {
   };
   
   // Fungsi untuk render reviewer card
-  const renderReviewerCard = (reviewer: any) => {
+  const renderReviewerCard = (reviewer: Reviewer) => {
     const status = reviewerPenilaianStatus[reviewer.id_reviewer.toString()] || { administrasi: false, substansi: false };
     
     return (

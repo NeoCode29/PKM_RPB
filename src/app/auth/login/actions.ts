@@ -2,7 +2,6 @@
 
 import { z } from 'zod';
 import { supabaseServer } from '@/lib/supabase/server';
-import { redirect } from 'next/navigation';
 import { resendConfirmationEmail } from '../verify-email/actions';
 
 // membuat skema validasi login
@@ -81,7 +80,7 @@ export async function loginUser(data: LoginParams): Promise<LoginResult> {
         }
 
         // mendapatkan role pengguna dari tabel 'users'
-        const { data: userData, error: userError } = await supabase
+        const { error: userError } = await supabase
             .from('users')
             .select('role')
             .eq('id', authData.user.id)

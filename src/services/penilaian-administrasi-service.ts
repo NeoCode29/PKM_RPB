@@ -106,11 +106,11 @@ export const PenilaianAdministrasiService = {
         penilaian: penilaianData,
         details: detailData || []
       };
-    } catch (error) {
+    } catch {
       return null;
     }
   },
-  
+
   // Membuat penilaian administrasi baru
   async createPenilaian(input: PenilaianAdministrasiInput): Promise<PenilaianAdministrasi> {
     const supabase = supabaseClient();
@@ -135,7 +135,7 @@ export const PenilaianAdministrasiService = {
       }
       
       // Cek apakah penilaian sudah ada
-      const { data: existingPenilaian, error: existingError } = await supabase
+      const { data: existingPenilaian } = await supabase
         .from('penilaian_administrasi')
         .select('*')
         .eq('id_reviewer', reviewerData.id_reviewer)
@@ -240,7 +240,7 @@ export const PenilaianAdministrasiService = {
       }
       
       return { success: true };
-    } catch (error) {
+    } catch {
       throw new Error("Gagal memperbarui penilaian administrasi");
     }
   },
@@ -288,18 +288,16 @@ export const PenilaianAdministrasiService = {
       const bidangCounts: Record<number, {count: number, nama: string}> = {};
       
       // Gunakan tipe any untuk menghindari error TypeScript
-      (proposals as any[]).forEach(proposal => {
-        const bidangId = proposal.id_bidang_pkm;
+      (proposals as Array<Record<string, unknown>>).forEach(proposal => {
+        const bidangId = proposal.id_bidang_pkm as number;
         if (!bidangCounts[bidangId]) {
-          // Akses bidang_pkm dengan cara yang lebih aman
-          const bidangNama = proposal.bidang_pkm && typeof proposal.bidang_pkm === 'object' ? 
-            // Jika bidang_pkm adalah array, ambil elemen pertama
-            (Array.isArray(proposal.bidang_pkm) ? 
-              (proposal.bidang_pkm[0]?.nama || 'Unknown') : 
-              // Jika bidang_pkm adalah objek biasa
-              (proposal.bidang_pkm.nama || 'Unknown')) 
+          const bidangPkm = proposal.bidang_pkm as Record<string, unknown> | Record<string, unknown>[] | null;
+          const bidangNama = bidangPkm && typeof bidangPkm === 'object' ?
+            (Array.isArray(bidangPkm) ?
+              ((bidangPkm[0] as Record<string, unknown>)?.nama as string || 'Unknown') :
+              ((bidangPkm as Record<string, unknown>).nama as string || 'Unknown'))
             : 'Unknown';
-            
+
           bidangCounts[bidangId] = {
             count: 0,
             nama: bidangNama
@@ -322,7 +320,7 @@ export const PenilaianAdministrasiService = {
   },
   
   // Mendapatkan proposal dalam bidang tertentu yang ditugaskan ke reviewer
-  async getProposalsByBidang(id_reviewer_user: string, id_bidang_pkm: number): Promise<any[]> {
+  async getProposalsByBidang(id_reviewer_user: string, id_bidang_pkm: number): Promise<Record<string, unknown>[]> {
     const supabase = supabaseClient();
     
     try {

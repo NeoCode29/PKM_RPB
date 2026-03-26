@@ -1,6 +1,5 @@
 import { Suspense } from 'react';
 import { BackButton } from '@/components/reviewer/BackButton';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ProposalListSubstansiClient } from '@/components/penilaian-substansi/ProposalListSubstansiClient';
 import { getUserId } from '@/lib/auth/get-user-id';
@@ -26,18 +25,6 @@ function Loading() {
   );
 }
 
-// Komponen untuk error state
-function ErrorState() {
-  return (
-    <Alert variant="destructive">
-      <AlertTitle>Error</AlertTitle>
-      <AlertDescription>
-        Terjadi kesalahan saat memuat data. Silakan coba lagi nanti.
-      </AlertDescription>
-    </Alert>
-  );
-}
-
 // Fungsi untuk mendapatkan nama bidang
 async function getBidangName(bidangId: number) {
   try {
@@ -52,14 +39,14 @@ async function getBidangName(bidangId: number) {
 export default async function BidangProposalPage({ 
   params 
 }: { 
-  params: any 
+  params: Promise<{ id_bidang: string }>
 }) {
   const paramsStore = await params;
   let userId: string;
   
   try {
     userId = await getUserId();
-  } catch (error) {
+  } catch {
     redirect('/login');
   }
   

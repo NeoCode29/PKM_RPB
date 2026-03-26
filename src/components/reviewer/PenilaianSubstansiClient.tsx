@@ -1,6 +1,6 @@
 'use client';
 
-import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Loader2, Info } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -23,17 +23,6 @@ interface PenilaianSubstansiClientFormProps {
   bidangId: number;
   proposalId: number;
 }
-
-// Deskripsi skor 1-7
-const deskripsiSkor: Record<number, string> = {
-  1: "Sangat Kurang",
-  2: "Kurang",
-  3: "Cukup Kurang",
-  4: "Cukup",
-  5: "Cukup Baik",
-  6: "Baik",
-  7: "Sangat Baik"
-};
 
 export function PenilaianSubstansiClientForm({ 
   userId, 

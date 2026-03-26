@@ -131,7 +131,7 @@ export function KriteriaSubstansiManagement() {
         activeBidang={activeBidangId}
         onChangeBidang={handleChangeBidang}
       >
-        {(bidangPkmId, bidangName) => (
+        {(_bidangPkmId, _bidangName) => (
           <div>
             {loading ? (
               <div className="flex justify-center my-10">

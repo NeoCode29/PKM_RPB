@@ -76,7 +76,7 @@ export async function registerUser(data: {
     if (dbError) {
       // Jika gagal, hapus user yang sudah diregistrasi di auth
       // (Opsional: Anda bisa skip langkah ini jika menggunakan RLS atau triggers)
-      await supabase.auth.admin.deleteUser(authData.user?.id!);
+      await supabase.auth.admin.deleteUser(authData.user!.id);
       
       return {
         success: false,

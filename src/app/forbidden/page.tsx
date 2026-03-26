@@ -1,8 +1,6 @@
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { headers } from "next/headers";
-import Link from "next/link";
-
 export default async function ForbiddenPage() {
   const header = await headers();
   const userRole = header.get("pkm-user-role");

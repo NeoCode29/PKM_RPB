@@ -3,8 +3,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { useToast } from "@/components/ui/use-toast";
-import { 
+import {
   FileUp, 
   Loader2, 
   Plus, 
@@ -25,6 +24,7 @@ import { ProposalDialog } from "@/components/proposal/proposal-dialog";
 import { DeleteConfirmation } from "@/components/proposal/delete-confirmation";
 import { ImportDialog } from "@/components/proposal/import-dialog";
 import { useProposals } from "@/hooks/use-proposals";
+import { ProposalWithRelations, ProposalInput } from "@/services/proposal-service";
 import { DataTablePagination } from '@/components/ui/data-table-pagination';
 
 export default function ProposalPage() {
@@ -35,10 +35,10 @@ export default function ProposalPage() {
   const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
   const [openImportDialog, setOpenImportDialog] = useState(false);
   const [dialogMode, setDialogMode] = useState<'add' | 'edit' | 'view'>('add');
-  const [selectedProposal, setSelectedProposal] = useState<any>(null);
+  const [selectedProposal, setSelectedProposal] = useState<ProposalWithRelations | null>(null);
   
   // State untuk filter pencarian
-  const [searchQuery, setSearchQuery] = useState<any>("");
+  const [searchQuery, setSearchQuery] = useState("");
   
   // Gunakan hook useProposals untuk manajemen proposal
   const {
@@ -80,19 +80,19 @@ export default function ProposalPage() {
   };
   
   // Handler untuk edit proposal
-  const handleEdit = (proposal: any) => {
+  const handleEdit = (proposal: ProposalWithRelations) => {
     setSelectedProposal(proposal);
     setDialogMode('edit');
     setOpenDialog(true);
   };
   
   // Handler untuk lihat detail proposal
-  const handleView = (proposal: any) => {
+  const handleView = (proposal: ProposalWithRelations) => {
     router.push(`/admin/proposal/${proposal.id_proposal}`);
   };
   
   // Handler untuk hapus proposal
-  const handleDelete = (proposal: any) => {
+  const handleDelete = (proposal: ProposalWithRelations) => {
     setSelectedProposal(proposal);
     setOpenDeleteDialog(true);
   };
@@ -103,14 +103,14 @@ export default function ProposalPage() {
       try {
         await deleteProposal(selectedProposal.id_proposal);
         setOpenDeleteDialog(false);
-      } catch (err) {
+      } catch {
         // Error handling
       }
     }
   };
-  
+
   // Handler untuk save proposal
-  const handleSaveProposal = async (data: any, mode: 'add' | 'edit') => {
+  const handleSaveProposal = async (data: ProposalInput, mode: 'add' | 'edit') => {
     try {
       if (mode === 'add') {
         await createProposal(data);
@@ -119,7 +119,7 @@ export default function ProposalPage() {
         await updateProposal(selectedProposal.id_proposal, data);
         setOpenDialog(false);
       }
-    } catch (err) {
+    } catch {
       // Error handling
     }
   };
