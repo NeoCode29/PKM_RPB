@@ -27,16 +27,34 @@ SELECT setval('bidang_pkm_id_bidang_pkm_seq', 10);
 -- 2. KRITERIA ADMINISTRASI
 -- ============================================
 INSERT INTO kriteria_administrasi (deskripsi) VALUES
-  ('Kelengkapan identitas pengusul (nama, NIM, program studi, perguruan tinggi)'),
-  ('Kesesuaian bidang PKM yang dipilih'),
-  ('Kelengkapan dokumen proposal (halaman judul, daftar isi, ringkasan, pendahuluan, tinjauan pustaka, metode, biaya, daftar pustaka, lampiran)'),
-  ('Format penulisan sesuai panduan (font, spasi, margin, jumlah halaman)'),
-  ('Kelengkapan dan keabsahan tanda tangan (ketua, anggota, dosen pembimbing, pimpinan PT)'),
-  ('Kesesuaian anggaran biaya dengan ketentuan (total dana, rincian penggunaan)'),
-  ('Kelengkapan biodata pengusul dan dosen pembimbing'),
-  ('Jadwal kegiatan yang jelas dan realistis'),
-  ('Surat pernyataan ketua pelaksana'),
-  ('Kelengkapan lampiran pendukung (surat keterangan, foto, dokumen lainnya)')
+  ('Kesalahan Ketidaksesuaian Isi Proposal Dengan Bidang Yang Diusulkan (Salah Bidang PKM)'),
+  ('Kesalahan Judul (Akronim, Singkatan Tidak Baku atau Lebih Dari 20 Kata pada proposal)'),
+  ('Kesalahan Sampul (Terdapat Halaman Sampul/Cover)'),
+  ('Kesalahan Pengesahan (Terdapat Halaman Pengesahan)'),
+  ('Kesalahan Ukuran Kertas (Bukan A4)'),
+  ('Kesalahan Format Paragraf (Tidak Satu Kolom)'),
+  ('Kesalahan Font (Tidak Times New Roman, Ukuran 12)'),
+  ('Kesalahan Margin (Kiri Tidak 4cm, Atas, Kanan, Bawah Tidak 3cm)'),
+  ('Kesalahan Perataan Teks (Teks Paragraf Tidak Rata Kanan-Kiri)'),
+  ('Kesalahan Spasi (Teks Paragraf Tidak 1,15)'),
+  ('Kesalahan Abstrak'),
+  ('Terdapat Ringkasan'),
+  ('Kesalahan Sistematika Penulisan PKM'),
+  ('Kesalahan Nomor Halaman'),
+  ('Kesalahan Letak Nomor Halaman'),
+  ('Kesalahan Ketidaksesuaian Luaran Wajib (tidak harus urut) di Profil atau di proposal'),
+  ('Kesalahan Format Rekapitulasi Rencana Anggaran Biaya'),
+  ('Kesalahan Nominal Pengajuan Anggaran ke Dit. APTV/Belmawa (wajib min 5 jt dan maks 8 jt)'),
+  ('Kesalahan Nominal Dana Pendamping Perguruan Tinggi (Wajib Maks 2.000.000 (baik tunai/barang))'),
+  ('Kesalahan Format Jadwal Kegiatan (tidak Sesuai Lampiran 1 Buku Panduan)'),
+  ('Kesalahan Waktu Pelaksanaan (Tidak 3-4 Bulan)'),
+  ('Kesalahan Jumlah Halaman'),
+  ('Kesalahan Daftar Pustaka (Tidak Harvard Style, Urut Abjad, dan Menguraikan Nama Penulis)'),
+  ('Kesalahan Ketidaksesuaian Kelengkapan Dokumen dan Lampiran'),
+  ('Kesalahan Ketidaksesuaian Kriteria Keilmuan Bidang PKM atau Jumlah Anggota tidak Sesuai'),
+  ('Kesalahan Tanggal / Bulan / Tahun (Tidak antara 2 Mei - 2 Juni 2025)'),
+  ('Kesalahan Tanda Tangan (Pengusul / Pendamping / Mitra)'),
+  ('Kesalahan Surat Pernyataan Ketua Tim Pengusul')
 ON CONFLICT DO NOTHING;
 
 -- ============================================
@@ -45,92 +63,104 @@ ON CONFLICT DO NOTHING;
 
 -- PKM-RE (id_bidang_pkm = 1)
 INSERT INTO kriteria_substansi (id_bidang_pkm, deskripsi, bobot) VALUES
-  (1, 'Perumusan masalah (kejelasan, relevansi, dan urgensi masalah penelitian)', 15),
-  (1, 'Tinjauan pustaka dan landasan teori (kesesuaian, kedalaman, kemutakhiran referensi)', 15),
-  (1, 'Metode penelitian (ketepatan, kesesuaian dengan masalah, dan langkah-langkah pelaksanaan)', 25),
-  (1, 'Potensi hasil dan luaran (kontribusi ilmiah, kebaruan, dan dampak)', 25),
-  (1, 'Penjadwalan kegiatan dan kewajaran anggaran', 10),
-  (1, 'Kualitas penulisan dan sistematika proposal', 10);
+  (1, 'Kreativitas: Gagasan (orisinalitas, unik dan bermanfaat)', 15),
+  (1, 'Kreativitas: Penyajian rumusan masalah (data lengkap, fokus dan atraktif)', 15),
+  (1, 'Kreativitas: Perbandingan dengan riset terdahulu (kebaruan)', 10),
+  (1, 'Kesesuaian dan Kemutakhiran Metode Riset', 15),
+  (1, 'Potensi Program: Kontribusi Perkembangan Ilmu dan Teknologi', 10),
+  (1, 'Potensi Program: Sintesis Telaah Literatur, Potensi dan Prediksi Hasil Riset', 15),
+  (1, 'Potensi Program: Kemanfaatan', 10),
+  (1, 'Penjadwalan Kegiatan dan Personalia: (lengkap, jelas, waktu, dan personalianya sesuai)', 5),
+  (1, 'Penyusunan Anggaran Biaya: (lengkap, rinci, wajar dan jelas peruntukannya)', 5);
 
 -- PKM-RSH (id_bidang_pkm = 2)
 INSERT INTO kriteria_substansi (id_bidang_pkm, deskripsi, bobot) VALUES
-  (2, 'Perumusan masalah sosial humaniora (kejelasan dan relevansi)', 15),
-  (2, 'Tinjauan pustaka dan kerangka pemikiran', 15),
-  (2, 'Metode penelitian sosial humaniora (pendekatan, teknik pengumpulan data)', 25),
-  (2, 'Potensi hasil dan luaran penelitian', 25),
-  (2, 'Penjadwalan kegiatan dan kewajaran anggaran', 10),
-  (2, 'Kualitas penulisan dan sistematika proposal', 10);
+  (2, 'Kreativitas: Gagasan (orisinalitas, unik dan bermanfaat)', 15),
+  (2, 'Kreativitas: Penyajian rumusan masalah (data lengkap, fokus dan atraktif)', 15),
+  (2, 'Kreativitas: Perbandingan dengan riset terdahulu (state of the art)', 10),
+  (2, 'Kesesuaian dan Kemutakhiran Metode Riset', 15),
+  (2, 'Potensi Program: Kontribusi Perkembangan Ilmu dan Teknologi', 10),
+  (2, 'Potensi Program: Sintesis Telaah Literatur, Potensi dan Prediksi Hasil Riset', 15),
+  (2, 'Potensi Program: Kemanfaatan', 10),
+  (2, 'Penjadwalan Kegiatan dan Personalia: (lengkap, jelas, waktu, dan personalianya sesuai)', 5),
+  (2, 'Penyusunan Anggaran Biaya: (lengkap, rinci, wajar dan jelas peruntukannya)', 5);
 
 -- PKM-PM (id_bidang_pkm = 3)
 INSERT INTO kriteria_substansi (id_bidang_pkm, deskripsi, bobot) VALUES
-  (3, 'Analisis situasi dan permasalahan mitra (kejelasan dan urgensi)', 20),
-  (3, 'Solusi yang ditawarkan (kesesuaian, kreativitas, dan keberlanjutan)', 25),
-  (3, 'Metode pelaksanaan pengabdian (langkah-langkah, partisipasi masyarakat)', 20),
-  (3, 'Target luaran dan dampak bagi masyarakat', 20),
-  (3, 'Penjadwalan kegiatan dan kewajaran anggaran', 10),
-  (3, 'Kualitas penulisan dan sistematika proposal', 5);
+  (3, 'Kreativitas: Perumusan Masalah', 15),
+  (3, 'Kreativitas: Ketepatan Solusi (fokus dan atraktif)', 15),
+  (3, 'Ketepatan Masyarakat Mitra dan Kondisi Eksisting Mitra', 15),
+  (3, 'Potensi Program: Potensi Nilai Tambah untuk Mitra Program', 20),
+  (3, 'Potensi Program: Potensi Keberlanjutan Program', 20),
+  (3, 'Potensi Program: Kemanfaatan', 5),
+  (3, 'Penjadwalan Kegiatan dan Personalia (lengkap, jelas, waktu, dan personalianya sesuai)', 5),
+  (3, 'Penyusunan Anggaran Biaya (lengkap, rinci, wajar dan jelas peruntukannya)', 5);
 
 -- PKM-PI (id_bidang_pkm = 4)
 INSERT INTO kriteria_substansi (id_bidang_pkm, deskripsi, bobot) VALUES
-  (4, 'Kreativitas dan inovasi ide (kebaruan, originalitas)', 25),
-  (4, 'Analisis peluang pasar dan studi kelayakan', 20),
-  (4, 'Metode pelaksanaan dan rencana produksi', 20),
-  (4, 'Strategi pemasaran dan analisis keuangan', 20),
-  (4, 'Penjadwalan kegiatan dan kewajaran anggaran', 10),
-  (4, 'Kualitas penulisan dan sistematika proposal', 5);
+  (4, 'Kreativitas: Identifikasi Permasalahan atau Kebutuhan Mitra', 10),
+  (4, 'Kreativitas: Ketepatan Solusi yang Ditawarkan', 20),
+  (4, 'Ketepatan Mitra Program', 15),
+  (4, 'Potensi Program: Potensi Nilai Tambah untuk Mitra Program', 25),
+  (4, 'Potensi Program: Potensi Keberlanjutan Program', 20),
+  (4, 'Penjadwalan Kegiatan dan Personalia: (lengkap, jelas, waktu, dan personalianya sesuai)', 5),
+  (4, 'Penyusunan Anggaran Biaya: (lengkap, rinci, wajar dan jelas peruntukannya)', 5);
 
 -- PKM-KC (id_bidang_pkm = 5)
 INSERT INTO kriteria_substansi (id_bidang_pkm, deskripsi, bobot) VALUES
-  (5, 'Kreativitas dan inovasi karya cipta (kebaruan dan originalitas)', 30),
-  (5, 'Dasar teori dan konsep yang digunakan', 15),
-  (5, 'Metode perancangan dan pembuatan karya', 20),
-  (5, 'Potensi manfaat dan implementasi karya', 20),
-  (5, 'Penjadwalan kegiatan dan kewajaran anggaran', 10),
-  (5, 'Kualitas penulisan dan sistematika proposal', 5);
+  (5, 'Kreativitas: Gagasan (orisinalitas, unik dan manfaat masa depan)', 20),
+  (5, 'Kreativitas: Kemutakhiran ipteks yang diadopsi', 20),
+  (5, 'Kesesuaian Tahap Pelaksanaan', 15),
+  (5, 'Potensi Program: Kontribusi produk luaran terhadap solusi permasalahan dan perkembangan IPTEKS', 25),
+  (5, 'Potensi Program: Potensi Publikasi Artikel Ilmiah/Kekayaan Intelektual', 10),
+  (5, 'Penjadwalan Kegiatan dan Personalia: (Lengkap, Jelas, Waktu, dan Personalianya Sesuai)', 5),
+  (5, 'Penyusunan Anggaran Biaya: (Lengkap, Rinci, Wajar dan Jelas Peruntukannya)', 5);
 
 -- PKM-KI (id_bidang_pkm = 6)
 INSERT INTO kriteria_substansi (id_bidang_pkm, deskripsi, bobot) VALUES
-  (6, 'Perumusan masalah dan gagasan konstruktif', 20),
-  (6, 'Kedalaman kajian teoritik dan tinjauan pustaka', 20),
-  (6, 'Metodologi dan analisis gagasan', 25),
-  (6, 'Kesimpulan dan rekomendasi (kontribusi pemikiran)', 20),
-  (6, 'Penjadwalan kegiatan dan kewajaran anggaran', 10),
-  (6, 'Kualitas penulisan dan sistematika proposal', 5);
+  (6, 'Kreativitas: Identifikasi Permasalahan atau Kebutuhan Pelanggan/Mitra', 15),
+  (6, 'Kreativitas: Ketepatan Solusi (fokus dan atraktif)', 15),
+  (6, 'Kesesuaian Target Pengguna/Konsumen', 15),
+  (6, 'Potensi Program: Nilai Tambah bagi Target Pengguna', 25),
+  (6, 'Potensi Program: Potensi Komersialisasi/Kemanfaatan', 20),
+  (6, 'Penjadwalan Kegiatan dan Personalia (lengkap, jelas, waktu, dan personalianya sesuai)', 5),
+  (6, 'Penyusunan Anggaran Biaya (lengkap, rinci, wajar dan jelas peruntukannya)', 5);
 
 -- PKM-K (id_bidang_pkm = 7)
 INSERT INTO kriteria_substansi (id_bidang_pkm, deskripsi, bobot) VALUES
-  (7, 'Perumusan masalah dan latar belakang kewirausahaan', 15),
-  (7, 'Analisis peluang usaha dan studi kelayakan', 20),
-  (7, 'Rencana bisnis dan strategi pemasaran', 25),
-  (7, 'Analisis keuangan dan proyeksi keuntungan', 20),
-  (7, 'Penjadwalan kegiatan dan kewajaran anggaran', 10),
-  (7, 'Kualitas penulisan dan sistematika proposal', 10);
+  (7, 'Kreativitas: Gagasan Usaha (analisis peluang pasar, dukungan sumber daya)', 15),
+  (7, 'Kreativitas: Keunggulan Produk/Jasa', 15),
+  (7, 'Kreativitas: Potensi Pasar/Peluang Pasar', 15),
+  (7, 'Potensi Program: Potensi Perolehan Profit/Keuntungan', 25),
+  (7, 'Potensi Program: Potensi Keberlanjutan Usaha', 20),
+  (7, 'Penjadwalan Kegiatan dan Personalia (lengkap, jelas, waktu, dan personalianya sesuai)', 5),
+  (7, 'Penyusunan Anggaran Biaya (lengkap, rinci, wajar dan jelas peruntukannya)', 5);
 
 -- PKM-VGK (id_bidang_pkm = 8)
 INSERT INTO kriteria_substansi (id_bidang_pkm, deskripsi, bobot) VALUES
-  (8, 'Kreativitas dan keaslian konten video/gagasan', 30),
-  (8, 'Pesan dan narasi yang disampaikan (kejelasan, relevansi)', 25),
-  (8, 'Teknis pembuatan (kualitas visual, audio, editing)', 20),
-  (8, 'Potensi dampak dan manfaat bagi masyarakat', 15),
-  (8, 'Kualitas penulisan naskah dan deskripsi', 10);
+  (8, 'Kreativitas: Gagasan (orisinalitas, unik, dan bermanfaat)', 20),
+  (8, 'Kreativitas: Kesesuaian tema dan kejelasan ide', 20),
+  (8, 'Konstruksi Gagasan: Logika penyelesaian masalah dan visibilitas penerapan', 20),
+  (8, 'Potensi Program: Kemanfaatan dan Dampak Gagasan', 30),
+  (8, 'Penjadwalan Kegiatan dan Personalia (lengkap, jelas, waktu, dan personalianya sesuai)', 5),
+  (8, 'Penyusunan Anggaran Biaya (lengkap, rinci, wajar dan jelas peruntukannya)', 5);
 
 -- PKM-AI (id_bidang_pkm = 9)
 INSERT INTO kriteria_substansi (id_bidang_pkm, deskripsi, bobot) VALUES
-  (9, 'Kreativitas dan inovasi penerapan AI/teknologi', 30),
-  (9, 'Perumusan masalah dan relevansi solusi AI', 20),
-  (9, 'Metode pengembangan dan implementasi', 20),
-  (9, 'Potensi hasil, dampak, dan keberlanjutan', 15),
-  (9, 'Penjadwalan kegiatan dan kewajaran anggaran', 10),
-  (9, 'Kualitas penulisan dan sistematika proposal', 5);
+  (9, 'Kreativitas dan Orisinalitas Artikel', 20),
+  (9, 'Pendahuluan (kemutakhiran dan urgensi)', 15),
+  (9, 'Metode/Cara Pelaksanaan', 15),
+  (9, 'Hasil dan Pembahasan (Analisis dan sintesis)', 30),
+  (9, 'Kesimpulan dan Daftar Pustaka', 10),
+  (9, 'Sistematika Penulisan', 10);
 
 -- PKM-GFT (id_bidang_pkm = 10)
 INSERT INTO kriteria_substansi (id_bidang_pkm, deskripsi, bobot) VALUES
-  (10, 'Kreativitas dan inovasi gagasan futuristik', 30),
-  (10, 'Kelayakan ilmiah dan dasar teori', 20),
-  (10, 'Metode dan pendekatan yang diusulkan', 20),
-  (10, 'Potensi dampak jangka panjang bagi masa depan', 15),
-  (10, 'Penjadwalan kegiatan dan kewajaran anggaran', 10),
-  (10, 'Kualitas penulisan dan sistematika proposal', 5);
+  (10, 'Kreativitas: Gagasan (orisinalitas, unik, dan visioner)', 25),
+  (10, 'Konstruksi Gagasan: Logika dan Prediksi Dampak', 25),
+  (10, 'Kelayakan Implementasi Gagasan', 20),
+  (10, 'Kemanfaatan Gagasan', 20),
+  (10, 'Sistematika Penulisan dan Penggunaan Bahasa', 10);
 
 -- ============================================
 -- 4. DATA CONTOH: DOSEN PEMBIMBING

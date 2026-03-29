@@ -1,17 +1,50 @@
 import { Suspense } from 'react';
 import { BackButton } from '@/components/reviewer/BackButton';
 import { ProposalDetailCard } from '@/components/reviewer/ProposalDetailCard';
-import { ProposalService } from '@/services/proposal-service';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Skeleton } from '@/components/ui/skeleton';
 import { PenilaianSubstansiClientForm } from '@/components/reviewer/PenilaianSubstansiClient';
 import { getUserId } from '@/lib/auth/get-user-id';
 import { redirect } from 'next/navigation';
+import { supabaseServer } from '@/lib/supabase/server';
 
-// Komponen untuk mendapatkan proposal detail
+// Komponen untuk mendapatkan proposal detail (server-side)
 async function getProposalDetail(proposalId: number) {
   try {
-    return await ProposalService.getById(proposalId);
+    const supabase = await supabaseServer();
+    const { data, error } = await supabase
+      .from('proposal')
+      .select(`
+        *,
+        mahasiswa (*),
+        dosen (*),
+        bidang_pkm (*),
+        reviewer (
+          id_reviewer,
+          id_proposal,
+          id_user,
+          no,
+          users (id, username, email, role)
+        ),
+        detail_pendanaan (*)
+      `)
+      .eq('id_proposal', proposalId)
+      .single();
+
+    if (error) throw error;
+    if (!data) return null;
+
+    // Transform reviewer data
+    const reviewerData = data.reviewer as Record<string, unknown>[] | null;
+    const transformedReviewers = reviewerData ? reviewerData.map((r: Record<string, unknown>) => ({
+      id_reviewer: r.id_reviewer,
+      id_proposal: r.id_proposal,
+      id_user: r.id_user,
+      no: r.no,
+      user: r.users
+    })) : [];
+
+    return { ...data, reviewer: transformedReviewers } as unknown as import('@/services/proposal-service').ProposalWithRelations;
   } catch (error) {
     console.error('Error fetching proposal:', error);
     return null;

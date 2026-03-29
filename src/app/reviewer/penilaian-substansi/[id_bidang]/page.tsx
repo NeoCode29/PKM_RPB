@@ -4,7 +4,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { ProposalListSubstansiClient } from '@/components/penilaian-substansi/ProposalListSubstansiClient';
 import { getUserId } from '@/lib/auth/get-user-id';
 import { redirect } from 'next/navigation';
-import { BidangPkmService } from '@/services/bidang-pkm-service';
+import { supabaseServer } from '@/lib/supabase/server';
 
 // Komponen untuk loading state
 function Loading() {
@@ -17,7 +17,7 @@ function Loading() {
           <Skeleton className="h-4 w-32" />
         </div>
       </div>
-      
+
       <div className="rounded-md border p-4">
         <Skeleton className="h-[400px] w-full" />
       </div>
@@ -25,11 +25,17 @@ function Loading() {
   );
 }
 
-// Fungsi untuk mendapatkan nama bidang
+// Fungsi untuk mendapatkan nama bidang (server-side)
 async function getBidangName(bidangId: number) {
   try {
-    const bidang = await BidangPkmService.getById(bidangId);
-    return bidang?.nama || 'Bidang PKM';
+    const supabase = await supabaseServer();
+    const { data, error } = await supabase
+      .from('bidang_pkm')
+      .select('nama')
+      .eq('id_bidang_pkm', bidangId)
+      .single();
+    if (error) throw error;
+    return data?.nama || 'Bidang PKM';
   } catch (error) {
     console.error('Error fetching bidang name:', error);
     return 'Bidang PKM';
